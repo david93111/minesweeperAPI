@@ -1,0 +1,39 @@
+{
+	"info": {
+		"_postman_id": "1d67a015-979b-40ff-9fe2-1f79486d44b5",
+		"name": "minesweeper",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request Minefield",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": "http://localhost:8010/minesweeper/minefield"
+			},
+			"response": []
+		},
+		{
+			"name": "Version",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": "http://localhost:8010/minesweeper/version"
+			},
+			"response": []
+		},
+		{
+			"name": "Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": "http://localhost:8010/minesweeper/health_check"
+			},
+			"response": []
+		}
+	]
+}

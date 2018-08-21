@@ -1,6 +1,6 @@
 name := "minesweeperMS"
 
-version := "0.1"
+version := "0.00.1Beta1"
 
 scalaVersion := "2.12.6"
 

@@ -1,0 +1,2 @@
+- 0.0.1Beta1
+  + First steps on API, creation of minefield
