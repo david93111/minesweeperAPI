@@ -6,12 +6,176 @@
 	},
 	"item": [
 		{
-			"name": "Request Minefield",
+			"name": "Create Game",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game?user=testUser&rows=9&columns=9&mines=18",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "testUser"
+						},
+						{
+							"key": "rows",
+							"value": "9"
+						},
+						{
+							"key": "columns",
+							"value": "9"
+						},
+						{
+							"key": "mines",
+							"value": "18"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Existing Game",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"body": {},
-				"url": "http://localhost:8010/minesweeper/minefield"
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game"
+					],
+					"query": [
+						{
+							"key": "gameId",
+							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reveal Spot",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/reveal?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						"reveal"
+					],
+					"query": [
+						{
+							"key": "gameId",
+							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mark With Flag",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"FlagMark\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=5adffae9-0b08-43fb-a30a-21830366c304",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						"mark"
+					],
+					"query": [
+						{
+							"key": "gameId",
+							"value": "5adffae9-0b08-43fb-a30a-21830366c304"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mark With Question",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"QuestionMark\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						"mark"
+					],
+					"query": [
+						{
+							"key": "gameId",
+							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+						}
+					]
+				}
 			},
 			"response": []
 		},

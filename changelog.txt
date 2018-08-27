@@ -1,2 +1,8 @@
+- 0.0.1Beta2
+  + API defined
+  + Akka Actor System added to manage multiple games at time, and parallel execution using routing and hash table
+  + Error and Exception management of basic scenarios
+  + Configuration of minefield on creation
+
 - 0.0.1Beta1
   + First steps on API, creation of minefield
