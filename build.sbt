@@ -12,6 +12,7 @@ lazy val root = (project in file(".")).
   )
 
 // AKKA
+val akkaHttpVersion = "10.1.3"
 val akkaVersion = "2.5.14"
 val akkaDependencies = Seq(
   "com.typesafe.akka" %% "akka-stream",
@@ -27,13 +28,14 @@ val circeDependencies = Seq(
 ).map(_ % circeVersion)
 
 val generalDependencies = Seq(
-  "org.scalatest"       %%  "scalatest"         % "3.0.5"   % Test,
-  "com.typesafe.akka"   %% "akka-testkit"       % "2.5.14"  % Test,
-  "com.typesafe.akka"   %%  "akka-http"         % "10.1.3",
-  "de.heikoseeberger"   %%  "akka-http-circe"   % "1.21.0",
-  "ch.qos.logback"      %   "logback-classic"   % "1.2.3",
-  "com.typesafe"        %   "config"            % "1.3.2",
-  "com.beachape"        %%  "enumeratum-circe"  % "1.5.13"
+  "org.scalatest"       %%  "scalatest"           % "3.0.5"          % Test,
+  "com.typesafe.akka"   %%  "akka-testkit"        % "2.5.14"         % Test,
+  "com.typesafe.akka"   %%  "akka-http-testkit"   % akkaHttpVersion  % Test,
+  "com.typesafe.akka"   %%  "akka-http"           % akkaHttpVersion,
+  "de.heikoseeberger"   %%  "akka-http-circe"     % "1.21.0",
+  "ch.qos.logback"      %   "logback-classic"     % "1.2.3",
+  "com.typesafe"        %   "config"              % "1.3.2",
+  "com.beachape"        %%  "enumeratum-circe"    % "1.5.13"
 )
 
 libraryDependencies ++= akkaDependencies ++ circeDependencies ++ generalDependencies

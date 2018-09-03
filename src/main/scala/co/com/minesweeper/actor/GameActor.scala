@@ -2,13 +2,13 @@ package co.com.minesweeper.actor
 
 import akka.actor.Props
 import co.com.minesweeper.actor.GameActor.{GetMinefield, MarkSpot, MinefieldOperation, RevealSpot}
-import co.com.minesweeper.api.services.MinefieldServices
+import co.com.minesweeper.api.services.MinefieldService
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.GameOperationFailed
 
 class GameActor(val id: String, minefieldConf: MinefieldConfig, val user: String) extends BaseActor {
 
-  val minefield: Minefield = MinefieldServices.createMinefield(minefieldConf.columns, minefieldConf.rows, minefieldConf.mines)
+  val minefield: Minefield = MinefieldService.createMinefield(minefieldConf.columns, minefieldConf.rows, minefieldConf.mines)
 
   var status: GameStatus = GameStatus.Active
 
@@ -16,9 +16,9 @@ class GameActor(val id: String, minefieldConf: MinefieldConfig, val user: String
 
   private var revealedCells: Int = 0
 
-  val revealFunction: (Int, Int, Field) => Unit = MinefieldServices.revealSpot(minefield.board)
+  val revealFunction: (Int, Int, Field) => Unit = MinefieldService.revealSpot(minefield.board)
 
-  private val validateCellOperation: (Int, Int) => Boolean = MinefieldServices.cellInValidRange(minefieldConf.columns, minefieldConf.rows)
+  private val validateCellOperation: (Int, Int) => Boolean = MinefieldService.cellInValidRange(minefieldConf.columns, minefieldConf.rows)
 
   def minefieldOperationsReceive: Receive = {
     case RevealSpot(row, col) =>
@@ -31,7 +31,7 @@ class GameActor(val id: String, minefieldConf: MinefieldConfig, val user: String
           revealedCells = revealedCells + 1
           validateIfWon()
         case FieldType.Empty =>
-          val quantityRevealed =  MinefieldServices.revealSpotsUntilHintOrMine(minefield.board, MinefieldServices.nearSpots(row, col),validateCellOperation)
+          val quantityRevealed =  MinefieldService.revealSpotsUntilHintOrMine(minefield.board, MinefieldService.nearSpots(row, col),validateCellOperation)
           revealedCells = revealedCells + 1 + quantityRevealed
           validateIfWon()
       }

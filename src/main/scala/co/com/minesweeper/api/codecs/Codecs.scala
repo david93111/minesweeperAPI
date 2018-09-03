@@ -19,10 +19,11 @@ trait Codecs extends ExceptionCodecs{
   implicit val gameNotFoundDecoder: Decoder[GameOperationFailed] = deriveDecoder[GameOperationFailed]
   implicit val gameNotFoundEncoder: Encoder[GameOperationFailed] = deriveEncoder[GameOperationFailed]
 
-  // Request Decoders
+  // Request Decoders And Encoders
   implicit val markRequestDecoder: Decoder[MarkRequest] = deriveDecoder[MarkRequest]
   implicit val revealRequestDecoder: Decoder[RevealRequest] = deriveDecoder[RevealRequest]
   implicit val newGameRequestDecoder: Decoder[NewGameRequest] = deriveDecoder[NewGameRequest]
+  implicit val newGameRequestEncoder: Encoder[NewGameRequest] = deriveEncoder[NewGameRequest]
   implicit val gameSettingsDecoder: Decoder[GameSettings] = deriveDecoder[GameSettings]
 
 }

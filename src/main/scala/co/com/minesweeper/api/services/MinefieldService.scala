@@ -5,7 +5,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Random
 
-object MinefieldServices {
+object MinefieldService {
 
   val log: Logger = LoggerFactory.getLogger(this.getClass)
 
@@ -33,17 +33,19 @@ object MinefieldServices {
 
     val validateRange: (Int, Int) => Boolean = cellInValidRange(columns,rows)
 
-    val array =  Array.tabulate(rows, columns) { (row, col) =>
+    val reviewNear: (Int, Int) => Int = reviewNearFields(_, _, minefield, validateRange)
+
+    val arrayWithHints =  Array.tabulate(rows, columns) { (row, col) =>
         val spot: Field = minefield(row)(col)
         spot.fieldType match {
           case FieldType.Empty =>
-            val numOfNearMines = reviewNearFields(row,col,minefield,validateRange)
+            val numOfNearMines = reviewNear(row, col)
             if(numOfNearMines > 0) Field(FieldType.Hint,Some(numOfNearMines)) else spot
           case _ => spot
         }
     }
 
-    Minefield(array, rows, columns, maxMines)
+    Minefield(arrayWithHints, rows, columns, maxMines)
   }
 
   def revealSpotsUntilHintOrMine(board: Array[Array[Field]], cellsToReveal: List[(Int,Int)], validCell: (Int,Int)=> Boolean): Int = {
@@ -67,7 +69,7 @@ object MinefieldServices {
     minefield(row)(col) = field.copy(revealed = true)
   }
 
-  private def reviewNearFields(startRow:Int, startColumn: Int,board: Array[Array[Field]], validateFunction:(Int,Int) => Boolean) ={
+  private def reviewNearFields(startRow:Int, startColumn: Int, board: Array[Array[Field]], validateFunction:(Int,Int) => Boolean) ={
 
     val getSpot: (Int, Int) => Option[Field] = (row,col) => if(validateFunction(row,col)) Some(board(row)(col)) else None
 
