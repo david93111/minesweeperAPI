@@ -39,7 +39,7 @@ class GameActor(val id: String, minefieldConf: MinefieldConfig, val user: String
     case MarkSpot(row, col, mark) =>
       val field: Field = minefield.board(row)(col)
       if (!field.revealed){
-        minefield.board(row)(col) = field.copy(mark = Some(mark))
+        minefield.board(row)(col) = field.copy(mark = mark)
         sender() ! Game(id, status, user, minefield)
       } else sender() ! GameOperationFailed.cellAlreadyRevealed(id)
   }

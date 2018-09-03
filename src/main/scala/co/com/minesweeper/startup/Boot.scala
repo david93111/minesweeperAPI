@@ -1,7 +1,7 @@
 package co.com.minesweeper.startup
 
 import akka.actor.ActorSystem
-import akka.event.Logging
+import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import co.com.minesweeper.api.Api
@@ -17,9 +17,9 @@ object Boot extends App {
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher
 
-  val log = Logging(actorSystem.eventStream, "akka_minesweeper")
+  val log: LoggingAdapter = Logging(actorSystem.eventStream, "akka_minesweeper")
 
-  val api = new Api()(actorSystem)
+  val api = new Api(log)(actorSystem)
   val bindingFuture = Http().bindAndHandle(api.route, appHost , appPort)
 
   bindingFuture.onComplete{

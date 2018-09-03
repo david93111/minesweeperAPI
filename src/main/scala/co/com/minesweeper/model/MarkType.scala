@@ -9,6 +9,7 @@ case object MarkType extends Enum[MarkType] with CirceEnum[MarkType] {
 
   case object QuestionMark extends MarkType
   case object FlagMark extends MarkType
+  case object None extends MarkType
 
   val values: IndexedSeq[MarkType] = findValues
 

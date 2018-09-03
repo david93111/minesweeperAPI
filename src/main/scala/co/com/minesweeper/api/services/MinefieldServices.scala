@@ -43,7 +43,7 @@ object MinefieldServices {
         }
     }
 
-    Minefield(array)
+    Minefield(array, rows, columns, maxMines)
   }
 
   def revealSpotsUntilHintOrMine(board: Array[Array[Field]], cellsToReveal: List[(Int,Int)], validCell: (Int,Int)=> Boolean): Int = {

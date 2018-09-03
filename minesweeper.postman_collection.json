@@ -9,38 +9,17 @@
 			"name": "Create Game",
 			"request": {
 				"method": "POST",
-				"header": [],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:8010/minesweeper/game?user=testUser&rows=9&columns=9&mines=18",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8010",
-					"path": [
-						"minesweeper",
-						"game"
-					],
-					"query": [
-						{
-							"key": "user",
-							"value": "testUser"
-						},
-						{
-							"key": "rows",
-							"value": "9"
-						},
-						{
-							"key": "columns",
-							"value": "9"
-						},
-						{
-							"key": "mines",
-							"value": "18"
-						}
-					]
-				}
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"user\": \"testUser\",\n\t\"columns\": 5,\n\t\"rows\": 5,\n\t\"mines\": 5\n}"
+				},
+				"url": "http://localhost:8010/minesweeper/game"
 			},
 			"response": []
 		},
@@ -173,6 +152,42 @@
 						{
 							"key": "gameId",
 							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Mark",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"None\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=2ac6ab6b-dc49-4d35-9d38-0b004b05a351",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						"mark"
+					],
+					"query": [
+						{
+							"key": "gameId",
+							"value": "2ac6ab6b-dc49-4d35-9d38-0b004b05a351"
 						}
 					]
 				}

@@ -13,6 +13,7 @@ import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.codecs.Codecs
 import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model.messages.GameResponseMessage
+import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
 import co.com.minesweeper.model.{Game, MinefieldConfig}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
@@ -31,9 +32,10 @@ trait ApiServices extends Codecs{
 
   val gameManagerActor: ActorRef
 
-  def createNewGame(rows: Int, columns: Int, mines: Int, username: String): Route ={
+  def createNewGame(settings: GameSettings): Route ={
     val gameId = UUID.randomUUID().toString
-    val gameCreation = gameManagerActor ? CreateGame(gameId ,MinefieldConfig(rows, columns, mines), username)
+    val gameMessage = CreateGame(gameId, MinefieldConfig(settings.rows, settings.columns, settings.mines), settings.user)
+    val gameCreation = gameManagerActor ? gameMessage
     val result = gameCreation.mapTo[Game]
     onComplete(result){
       case Failure(exception) =>
@@ -51,7 +53,7 @@ trait ApiServices extends Codecs{
         complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
       case Success(value) =>
         value match {
-          case nf: GameOperationFailed => complete(NotFound -> nf)
+          case nf: GameOperationFailed => complete(nf.statusCode -> nf)
           case gm: Game => complete(OK -> gm)
         }
     }
@@ -79,7 +81,7 @@ trait ApiServices extends Codecs{
         complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
       case Success(value) =>
         value match {
-          case nf: GameOperationFailed => complete(NotFound -> nf)
+          case nf: GameOperationFailed => complete(nf.statusCode -> nf)
           case gm: Game => complete(OK -> gm)
         }
     }
