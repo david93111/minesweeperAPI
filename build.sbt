@@ -27,7 +27,8 @@ val circeDependencies = Seq(
 ).map(_ % circeVersion)
 
 val generalDependencies = Seq(
-  "org.scalatest"       %%  "scalatest"         % "3.0.5" % "test",
+  "org.scalatest"       %%  "scalatest"         % "3.0.5"   % Test,
+  "com.typesafe.akka"   %% "akka-testkit"       % "2.5.14"  % Test,
   "com.typesafe.akka"   %%  "akka-http"         % "10.1.3",
   "de.heikoseeberger"   %%  "akka-http-circe"   % "1.21.0",
   "ch.qos.logback"      %   "logback-classic"   % "1.2.3",
@@ -40,5 +41,7 @@ libraryDependencies ++= akkaDependencies ++ circeDependencies ++ generalDependen
 mainClass in Compile := Some("co.com.minesweeper.startup.Boot")
 
 enablePlugins(JavaServerAppPackaging)
+
+coverageEnabled := true
 
 packageName in Universal := name.value

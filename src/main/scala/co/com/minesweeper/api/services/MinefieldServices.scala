@@ -49,13 +49,13 @@ object MinefieldServices {
   def revealSpotsUntilHintOrMine(board: Array[Array[Field]], cellsToReveal: List[(Int,Int)], validCell: (Int,Int)=> Boolean): Int = {
     cellsToReveal.map{ case (row, col) =>
       if(validCell(row,col)){
-        val spot = board(col)(row)
+        val spot = board(row)(col)
         spot.fieldType match {
           case FieldType.Empty if !spot.revealed =>
-            revealSpot(board)(col, row, spot)
+            revealSpot(board)(row, col, spot)
             1 + revealSpotsUntilHintOrMine(board, nearSpots(row, col), validCell)
           case FieldType.Hint if !spot.revealed =>
-            revealSpot(board)(col, row, spot)
+            revealSpot(board)(row, col, spot)
             1
           case _ => 0
         }
@@ -83,7 +83,7 @@ object MinefieldServices {
   }
 
   def cellInValidRange(maxCol: Int, maxRows: Int)(row: Int, col:Int): Boolean = {
-    row >= 0 && row < maxRows && col >=0 && col < maxCol
+    (row >= 0 && row < maxRows) && (col >=0 && col < maxCol)
   }
 
   // Array is mutable by default, so is modified by reference

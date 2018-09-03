@@ -12,7 +12,7 @@ import scala.util.{Failure, Success}
 
 object Boot extends App {
 
-  implicit val actorSystem: ActorSystem = ActorSystem("my-system")
+  implicit val actorSystem: ActorSystem = ActorSystem("minesweeper-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher

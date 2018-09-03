@@ -1,7 +1,5 @@
 package co.com.minesweeper.actor
 
-import java.util.UUID
-
 import akka.actor.{ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.routing.ConsistentHashingRouter.ConsistentHashable
