@@ -18,6 +18,7 @@ import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
 import co.com.minesweeper.model.{Game, MinefieldConfig}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
+import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Failure, Success}
 
@@ -47,38 +48,23 @@ trait ApiServices extends Codecs{
 
   def getExistingGame(gameId: String): Route = {
     val getGame = gameManagerActor ? GetGame(gameId)
-    val result = getGame.mapTo[GameResponseMessage]
-    onComplete(result){
-      case Failure(exception) =>
-        complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
-      case Success(value) =>
-        value match {
-          case nf: GameOperationFailed => complete(nf.statusCode -> nf)
-          case gm: Game => complete(OK -> gm)
-        }
-    }
+    resolveGameResponseFuture(getGame.mapTo[GameResponseMessage])
   }
 
   def revealSpot(gameId: String, revealRequest: RevealRequest): Route = {
     val revealAction = gameManagerActor ? SendRevealSpot(gameId, revealRequest.row, revealRequest.col)
-    val result = revealAction.mapTo[GameResponseMessage]
-    onComplete(result){
-      case Failure(exception) =>
-        complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
-      case Success(value) =>
-        value match {
-          case nf: GameOperationFailed => complete(nf.statusCode -> nf)
-          case gm: Game => complete(OK -> gm)
-        }
-    }
+    resolveGameResponseFuture(revealAction.mapTo[GameResponseMessage])
   }
 
   def markSpot(gameId: String, markRequest: MarkRequest): Route = {
     val markAction = gameManagerActor ? SendMarkSpot(gameId, markRequest.row, markRequest.col, markRequest.mark)
-    val result = markAction.mapTo[GameResponseMessage]
+    resolveGameResponseFuture(markAction.mapTo[GameResponseMessage])
+  }
+
+  private def resolveGameResponseFuture(result: Future[GameResponseMessage]): Route = {
     onComplete(result){
       case Failure(exception) =>
-        complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
+        complete(InternalServerError -> s"Unexpected error processing operation: ${exception.getMessage}")
       case Success(value) =>
         value match {
           case nf: GameOperationFailed => complete(nf.statusCode -> nf)

@@ -5,10 +5,10 @@ import akka.testkit.{ImplicitSender, TestKit}
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameActor.{GetMinefield, MarkSpot, RevealSpot}
 import co.com.minesweeper.model.error.GameOperationFailed
-import co.com.minesweeper.model.{Game, GameStatus, MarkType, MinefieldConfig}
+import co.com.minesweeper.model._
 import org.scalatest.BeforeAndAfterAll
 
-class GameActorTest extends TestKit(ActorSystem("minesweeper-system-test")) with ImplicitSender
+class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with ImplicitSender
   with BaseTest with BeforeAndAfterAll {
 
   override def afterAll: Unit = {
@@ -57,7 +57,7 @@ class GameActorTest extends TestKit(ActorSystem("minesweeper-system-test")) with
       })
     }
 
-    "Send message to actor mark spot as No marked" in {
+    "Remove an existing mark on a spot marked and not revealed" in {
       gameActor ! MarkSpot(0,1, MarkType.None)
       expectMsgPF()({
         case game: Game =>
@@ -68,11 +68,12 @@ class GameActorTest extends TestKit(ActorSystem("minesweeper-system-test")) with
       })
     }
 
-    "Not Fail after send message to actor to remove mark on a revealed spot" in {
+    "Allow to remove a mark even on a revealed spot if game active" in {
       gameActor ! MarkSpot(0,0, MarkType.None)
       expectMsgPF()({
         case game: Game =>
           game.gameStatus shouldEqual GameStatus.Active
+          game.minefield.board(0)(0).mark shouldEqual MarkType.None
         case e =>
           fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a Game")
       })
@@ -107,6 +108,44 @@ class GameActorTest extends TestKit(ActorSystem("minesweeper-system-test")) with
         case e =>
           fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a GameOperationFailed")
       })
+    }
+
+    "Create new game and reveal a mine, game must pass to Lose state" in {
+      val config = MinefieldConfig(2, 2, 4)
+      val game = system.actorOf(GameActor.props("game2" ,config, "user2"))
+      game ! RevealSpot(0,0)
+      expectMsgPF()({
+        case game: Game =>
+          game.gameId.shouldEqual("game2")
+          game.minefield.board(0)(0).revealed shouldEqual true
+          game.gameStatus shouldEqual GameStatus.Lose
+        case e =>
+          fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a Game")
+      })
+    }
+
+    "Create new game , get game board and then reveal a Hint, game must remain active" in {
+      val config = MinefieldConfig(2, 2, 1)
+      val actor = system.actorOf(GameActor.props("game3" ,config, "user2"))
+      actor ! GetMinefield
+      expectMsgPF()({
+        case game: Game =>
+          game.gameId.shouldEqual("game3")
+          game.gameStatus shouldEqual GameStatus.Active
+          val targetHint = game.minefield.board.map(_.toList).toList.flatten.filter(_.fieldType == FieldType.Hint).head
+          actor ! RevealSpot(targetHint.row, targetHint.col)
+          expectMsgPF()({
+            case game: Game =>
+              game.gameId.shouldEqual("game3")
+              game.minefield.board(targetHint.row)(targetHint.col).revealed shouldEqual true
+              game.gameStatus shouldEqual GameStatus.Active
+            case e =>
+              fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a Game")
+          })
+        case e =>
+          fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a Game")
+      })
+
     }
 
   }

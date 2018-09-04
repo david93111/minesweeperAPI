@@ -22,15 +22,17 @@ object MinefieldService {
 
   def createMinefield(columns: Int, rows: Int, maxMines: Int): Minefield ={
 
-    val minefield: Array[Array[Field]] = Array.tabulate[Field](rows,columns){ (_,_) =>
-      Field(FieldType.Empty)
+    val totalSize: Int = rows * columns
+    val minefield: Array[Array[Field]] = Array.tabulate[Field](rows,columns){ (row, col) =>
+      Field(FieldType.Empty, row, col)
     }
+
+    val allowedMines = if(maxMines > totalSize ) totalSize else maxMines
 
     // Fill minefield with random bombs
-    for (_ <- 1 to maxMines){
+    for (_ <- 1 to allowedMines){
       putBomb(columns, rows, minefield)
     }
-
     val validateRange: (Int, Int) => Boolean = cellInValidRange(columns,rows)
 
     val reviewNear: (Int, Int) => Int = reviewNearFields(_, _, minefield, validateRange)
@@ -40,12 +42,12 @@ object MinefieldService {
         spot.fieldType match {
           case FieldType.Empty =>
             val numOfNearMines = reviewNear(row, col)
-            if(numOfNearMines > 0) Field(FieldType.Hint,Some(numOfNearMines)) else spot
+            if(numOfNearMines > 0) spot.copy(fieldType = FieldType.Hint, content = Some(numOfNearMines)) else spot
           case _ => spot
         }
     }
 
-    Minefield(arrayWithHints, rows, columns, maxMines)
+    Minefield(arrayWithHints, rows, columns, allowedMines)
   }
 
   def revealSpotsUntilHintOrMine(board: Array[Array[Field]], cellsToReveal: List[(Int,Int)], validCell: (Int,Int)=> Boolean): Int = {
@@ -101,7 +103,7 @@ object MinefieldService {
       case FieldType.Mine =>
         putBomb(columns, rows, matrix)
       case _ =>
-        matrix(row)(col) = Field(FieldType.Mine)
+        matrix(row)(col) = Field(FieldType.Mine, row, col)
     }
 
   }

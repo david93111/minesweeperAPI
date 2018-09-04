@@ -11,12 +11,12 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 class CustomRejectionHandler(log: LoggingAdapter) extends ExceptionCodecs {
 
   val handler: RejectionHandler = RejectionHandler.newBuilder().handle({
-    case ValidationRejection(msg,_) =>
+    case ValidationRejection(msg, _) =>
       log.warning("Request Rejection: request does not meet the validations ")
       complete(BadRequest -> ServiceException("Invalid Parameters", msg))
     case MalformedRequestContentRejection(msg,_) =>
-      log.warning("Request Rejection: request does not meet the validations ")
-      complete(BadRequest -> ServiceException("Invalid Parameters", msg))
+      log.warning("Request Rejection: request payload was invalid ")
+      complete(BadRequest -> ServiceException("Invalid Payload", msg))
   }).result().withFallback(RejectionHandler.default)
 
   def rejectionHandler: Directive0 = handleRejections(handler)

@@ -9,7 +9,7 @@ object NewGameRequest{
     require(user.trim.nonEmpty && !user.equals("null"), "User can not be empty or string literal null")
     require(rows > 0 && rows <= 30, "Rows of the minefield must be greater than zero")
     require(columns > 0 && columns <= 30, "Columns of the minefield must be greater than zero")
-    require( mines > 0 && mines < ((rows * columns) - 1) , "Mines to be placed must be greater than zero")
+    require( mines > 0 , "Mines to be placed must be greater than zero")
   }
 
   def GameSettingsFromGameRequest(gameRequest: NewGameRequest): GameSettings = {

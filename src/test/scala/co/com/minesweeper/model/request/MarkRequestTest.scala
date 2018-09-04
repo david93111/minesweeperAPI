@@ -5,7 +5,7 @@ import co.com.minesweeper.model.MarkType
 
 import scala.util.Try
 
-class MakeRequest extends BaseTest{
+class MarkRequestTest extends BaseTest{
 
   "MarkRequest Test should" -{
 

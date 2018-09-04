@@ -38,12 +38,16 @@ val generalDependencies = Seq(
   "com.beachape"        %%  "enumeratum-circe"    % "1.5.13"
 )
 
+parallelExecution in Test:=false
+
 libraryDependencies ++= akkaDependencies ++ circeDependencies ++ generalDependencies
 
 mainClass in Compile := Some("co.com.minesweeper.startup.Boot")
 
 enablePlugins(JavaServerAppPackaging)
 
-coverageEnabled := true
+coverageMinimum := 80
+coverageFailOnMinimum := true
+coverageEnabled in Universal:= true
 
 packageName in Universal := name.value
