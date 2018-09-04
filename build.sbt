@@ -16,7 +16,8 @@ val akkaHttpVersion = "10.1.3"
 val akkaVersion = "2.5.14"
 val akkaDependencies = Seq(
   "com.typesafe.akka" %% "akka-stream",
-  "com.typesafe.akka" %% "akka-actor"
+  "com.typesafe.akka" %% "akka-actor",
+  "com.typesafe.akka" %% "akka-persistence"
 ).map(_ % akkaVersion)
 
 // CIRCE
@@ -27,15 +28,22 @@ val circeDependencies = Seq(
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
+// Reactive Mongo version
+val rxMongoVersion="0.16.0"
+
 val generalDependencies = Seq(
-  "org.scalatest"       %%  "scalatest"           % "3.0.5"          % Test,
-  "com.typesafe.akka"   %%  "akka-testkit"        % "2.5.14"         % Test,
-  "com.typesafe.akka"   %%  "akka-http-testkit"   % akkaHttpVersion  % Test,
-  "com.typesafe.akka"   %%  "akka-http"           % akkaHttpVersion,
-  "de.heikoseeberger"   %%  "akka-http-circe"     % "1.21.0",
-  "ch.qos.logback"      %   "logback-classic"     % "1.2.3",
-  "com.typesafe"        %   "config"              % "1.3.2",
-  "com.beachape"        %%  "enumeratum-circe"    % "1.5.13"
+  "org.scalatest"          %%   "scalatest"                      % "3.0.5"          % Test,
+  "com.typesafe.akka"      %%   "akka-testkit"                   % "2.5.14"         % Test,
+  "com.typesafe.akka"      %%   "akka-http-testkit"              % akkaHttpVersion  % Test,
+  "com.github.dnvriend"    %%   "akka-persistence-inmemory"      % "2.5.1.1"        % Test,
+  "com.typesafe.akka"      %%   "akka-http"                      % akkaHttpVersion,
+  "de.heikoseeberger"      %%   "akka-http-circe"                % "1.21.0",
+  "ch.qos.logback"         %    "logback-classic"                % "1.2.3",
+  "com.typesafe"           %    "config"                         % "1.3.2",
+  "com.beachape"           %%   "enumeratum-circe"               % "1.5.13",
+  "com.github.scullxbones" %%   "akka-persistence-mongo-rxmongo" % "2.0.11",
+  "org.reactivemongo"      %%   "reactivemongo"                  % rxMongoVersion,
+  "org.reactivemongo"      %%   "reactivemongo-akkastream"       % rxMongoVersion
 )
 
 parallelExecution in Test:=false
