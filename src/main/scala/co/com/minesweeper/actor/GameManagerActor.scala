@@ -16,9 +16,11 @@ import co.com.minesweeper.model.{GameState, GameStatus, MarkType, MinefieldConfi
 import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorMaterializer) extends BaseActor {
+
+  var journal: Option[ScalaDslMongoReadJournal] = None
 
   override def receive: Receive = {
     case CreateGame(gameId, conf, username) =>
@@ -29,30 +31,30 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
 
     case GetGame(actorId) =>
       val fGetGame = { child: ActorRef =>
-        child.forward(GetMinefield)
+        child ? GetMinefield
       }
       sendToChild(actorId, fGetGame, sender)
 
     case SendRevealSpot(actorId, row, col) =>
       val fRevealSpot = { child: ActorRef =>
-        child.forward(GameActor.RevealSpot(row, col))
+        child ? GameActor.RevealSpot(row, col)
       }
       sendToChild(actorId, fRevealSpot, sender)
 
     case SendMarkSpot(actorId, row, col, mark: MarkType) =>
       val fMarkSpot = { child: ActorRef =>
-          child.forward(GameActor.MarkSpot (row, col, mark))
+        child ? GameActor.MarkSpot (row, col, mark)
       }
       sendToChild(actorId, fMarkSpot, sender)
   }
 
   def createNewGameOnRouter(gameId: String, game: GameState): ActorRef ={
     val props: Props = BackoffSupervisor.props(
-      Backoff.onStop(
+      Backoff.onFailure(
         GameActor.props(gameId, game),
         childName = gameId,
-        minBackoff = 3.seconds,
-        maxBackoff = 30.seconds,
+        minBackoff = 5.seconds,
+        maxBackoff = 45.seconds,
         randomFactor = 0.2
       )
     )
@@ -60,50 +62,57 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
     actorRef
   }
 
-  def loadJournal: Try[ScalaDslMongoReadJournal] = {
-    Try(PersistenceQuery(context.system).readJournalFor[ScalaDslMongoReadJournal](MongoReadJournal.Identifier))
+  def loadJournal: Option[ScalaDslMongoReadJournal] = {
+    if(journal.isEmpty) {
+      journal = Try(
+        PersistenceQuery(context.system).readJournalFor[ScalaDslMongoReadJournal](MongoReadJournal.Identifier)
+      ).toOption
+    }
+    journal
   }
 
   def journalQueryEvents(journal: ScalaDslMongoReadJournal, actorId: String): Future[immutable.Seq[EventEnvelope]] = {
     journal.currentEventsByPersistenceId(actorId, 0L, Long.MaxValue).runWith(Sink.seq)
   }
 
-  private def sendToChild(actorId: String, functionOnFound: ActorRef => Unit, sender: ActorRef): Unit = {
+  private def sendToChild(actorId: String, functionOnFound: ActorRef => Future[Any], sender: ActorRef): Unit = {
     context.child(actorId).fold {
-      validateActorOnJournalAndSendMessage(actorId, sender, functionOnFound)
+      val res: Future[Any] = validateActorOnJournalAndSendMessage(actorId, sender, functionOnFound)
+      res.pipeTo(sender)
     }(actor =>
-      functionOnFound(actor)
+      functionOnFound(actor).pipeTo(sender)
     )
   }
 
-  def validateActorOnJournalAndSendMessage(actorId: String, sender: ActorRef, functionOnFound: ActorRef => Unit): Unit ={
-    loadJournal.fold( ex =>{
-      logger.error("Exception trying to access the journal for query read, cause: {}", ex.getMessage)
-      sender ! GameOperationFailed.gameNotFound(actorId, "Actor is not on memory and journal is not available, please try again later")
-    },journal =>
-      journalQueryEvents(journal, actorId).onComplete {
-        case Success(value) if value.nonEmpty =>
-          logger.debug(s"The journal registries acquired are : ${value.mkString("|-|")}")
-          value.reverse.map{ event =>
-            event.event match{
-              case game: GameState =>
-                Option(game)
-              case _ =>
-                None
-            }
-          }.find(_.isDefined).flatten.fold(
-            sender ! GameOperationFailed.gameNotFound(actorId, "Actor not recoverable from akka_journal, perhaps corrupted, please create a new one")
-          ){ state =>
-            logger.debug("Actor with id: {} founded", actorId)
-            val ref = createNewGameOnRouter(actorId, state)
-            logger.debug("Actor with id: {} created", actorId)
-            functionOnFound(ref)
+  def validateActorOnJournalAndSendMessage(actorId: String, sender: ActorRef, functionOnFound: ActorRef => Future[Any]): Future[Any] ={
+    loadJournal.fold[Future[Any]]{
+      logger.error("Exception trying to access the journal for query read, cause: Journal could't be loaded")
+      Future.successful(
+        GameOperationFailed.gameNotFound(actorId, "Game is not on memory and journal is not available, please try again later")
+      )
+    } { journal =>
+      journalQueryEvents(journal, actorId).flatMap { events =>
+        events.map { journal_event =>
+          journal_event.event match {
+            case game: GameState =>
+              Option(game)
+            case _ =>
+              None
           }
-        case _ =>
-          sender ! GameOperationFailed.gameNotFound(actorId, "Actor not found on memory or akka_journal, please create a new one")
+        }.reverse.find(_.isDefined).flatten.fold[Future[Any]](
+          Future.successful(
+            GameOperationFailed.gameNotFound(actorId, "Game does not exist on akka_journal or perhaps corrupted, please create a new game")
+          )
+        ) { validState =>
+          logger.debug("Game with id: {} founded", actorId)
+          val ref = createNewGameOnRouter(actorId, validState)
+          logger.debug("Game with id: {} created", actorId)
+          functionOnFound(ref)
+        }
       }
-    )
+    }
   }
+
 }
 
 object GameManagerActor{

@@ -18,7 +18,8 @@ val akkaDependencies = Seq(
   "com.typesafe.akka" %% "akka-stream",
   "com.typesafe.akka" %% "akka-actor",
   "com.typesafe.akka" %% "akka-persistence",
-  "com.typesafe.akka" %% "akka-persistence-query"
+  "com.typesafe.akka" %% "akka-persistence-query",
+  "com.typesafe.akka" %% "akka-slf4j"
 ).map(_ % akkaVersion)
 
 // CIRCE

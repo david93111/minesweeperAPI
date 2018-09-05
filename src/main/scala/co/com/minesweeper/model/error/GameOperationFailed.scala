@@ -18,8 +18,8 @@ object GameOperationFailed{
     new GameOperationFailed("Cell can't be marked, is already revealed", id, 409)
   }
 
-  def GameFinished(id: String): GameOperationFailed = {
-    new GameOperationFailed("Operation not allowed, the game has finished already", id, 409)
+  def GameFinishedOrPaused(id: String): GameOperationFailed = {
+    new GameOperationFailed("Operation not allowed, the game is paused or has finished already", id, 409)
   }
 
 }

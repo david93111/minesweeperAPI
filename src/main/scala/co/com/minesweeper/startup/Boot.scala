@@ -17,14 +17,14 @@ object Boot extends App {
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext: ExecutionContextExecutor = actorSystem.dispatcher
 
-  val log: LoggingAdapter = Logging(actorSystem.eventStream, "akka_minesweeper")
+  val log: LoggingAdapter = Logging(actorSystem.eventStream, "akka_minesweeper_log")
 
   val api = new Api(log)(actorSystem, materializer)
   val bindingFuture = Http().bindAndHandle(api.route, appHost , appPort)
 
   bindingFuture.onComplete{
     case Success(value) =>
-      log.info("Binding Successfully achieved, server started")
+      log.info(s"Binding Successfully achieved, server started on $appHost:$appPort")
       actorSystem.registerOnTermination(value.unbind())
     case Failure(exception) =>
       log.error(s"HTTP server binding Failed, starting system shutdown, cause: $exception")

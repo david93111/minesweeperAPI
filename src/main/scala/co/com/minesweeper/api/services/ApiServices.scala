@@ -11,7 +11,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.codecs.Codecs
-import co.com.minesweeper.model.error.GameOperationFailed
+import co.com.minesweeper.model.error.{GameOperationFailed, ServiceException}
 import co.com.minesweeper.model.messages.GameResponseMessage
 import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
@@ -38,7 +38,7 @@ trait ApiServices extends Codecs with BaseTimeout{
     val result = gameCreation.mapTo[GameState]
     onComplete(result){
       case Failure(exception) =>
-        complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
+        complete(InternalServerError -> ServiceException("GameCreationError",s"Unexpected error creating new game cause: ${exception.getMessage}"))
       case Success(value) =>
           complete(OK -> value)
     }
@@ -62,7 +62,7 @@ trait ApiServices extends Codecs with BaseTimeout{
   private def resolveGameResponseFuture(result: Future[GameResponseMessage]): Route = {
     onComplete(result){
       case Failure(exception) =>
-        complete(InternalServerError -> s"Unexpected error processing operation: ${exception.getMessage}")
+        complete(InternalServerError -> ServiceException("GameOperationError",s"Unexpected error processing operation: ${exception.getMessage}"))
       case Success(value) =>
         value match {
           case nf: GameOperationFailed => complete(nf.statusCode -> nf)

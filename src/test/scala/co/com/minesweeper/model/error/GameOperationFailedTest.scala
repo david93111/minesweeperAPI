@@ -23,7 +23,7 @@ class GameOperationFailedTest extends BaseTest{
 
     "Create a GameFinished error with 409 status code" in{
 
-      val failedGame = GameOperationFailed.GameFinished("GameId")
+      val failedGame = GameOperationFailed.GameFinishedOrPaused("GameId")
       failedGame.message shouldEqual "Operation not allowed, the game has finished already"
       failedGame.statusCode shouldEqual 409
 

@@ -1,17 +1,27 @@
 package co.com.minesweeper.actor
 
-import akka.actor.Props
+import akka.actor.{Props, ReceiveTimeout}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import co.com.minesweeper.actor.GameActor._
 import co.com.minesweeper.api.services.MinefieldService
+import co.com.minesweeper.config.AppConf
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.GameOperationFailed
+import co.com.minesweeper.util.Timer
 
 class GameActor(val id: String, currentGame: GameState) extends PersistentActor with BaseActor {
+
+  context.setReceiveTimeout(AppConf.gameActorMaxIdleTime)
 
   override def persistenceId: String = id
 
   var state: GameState = currentGame
+
+  val timer: Timer = Timer.createTimer(state.timerInSeconds)
+
+  if(state.gameStatus ==  GameStatus.Active){
+    timer.start()
+  }
 
   var gameHistory: GameActor.GameHistory = GameHistory()
 
@@ -28,10 +38,9 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
         revealSpot(reveal.row, reveal.column, field)
         field.fieldType match {
           case FieldType.Mine =>
-            updateState(GameStatus.Lose, reveal.toString)
+            updateState(GameStatus.Lose, state.revealedCells + 1, reveal.toString, timer.stop())
           case FieldType.Hint =>
-            val newRevealed: Int = state.revealedCells + 1
-            validateIfWon(newRevealed, reveal.toString)
+            validateIfWon(state.revealedCells + 1, reveal.toString)
           case FieldType.Empty =>
             val quantityRevealed = MinefieldService.revealSpotsUntilHintOrMine(state.minefield.board, MinefieldService.nearSpots(reveal.row, reveal.column),validateCellOperation)
             val newRevealed: Int = state.revealedCells + quantityRevealed
@@ -43,7 +52,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       val field: Field = state.minefield.board(mark.row)(mark.column)
       if (!field.revealed || mark.mark == MarkType.None){
         state.minefield.board(mark.row)(mark.column) = field.copy(mark = mark.mark)
-        updateState(mark.toString)
+        updateState(mark.toString, timer.elapsed())
         sender() ! state
       } else sender() ! GameOperationFailed.cellAlreadyRevealed(id)
   }
@@ -64,43 +73,62 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       sender() ! state
     case e: MinefieldOperation =>
       logger.debug("Processing Message of operation, content: {}", e.toString)
-      if(!validateCellOperation(e.row, e.column))
+      if(state.gameStatus != GameStatus.Active || state.paused)
+        sender() ! GameOperationFailed.GameFinishedOrPaused(id)
+      else if(!validateCellOperation(e.row, e.column))
         sender() ! GameOperationFailed.invalidCell(id)
-      else if(state.gameStatus != GameStatus.Active)
-        sender() ! GameOperationFailed.GameFinished(id)
       else
         minefieldOperationsReceive(e)
+    case PauseGame =>
+      if(!state.paused){
+        updateState(PauseGame.toString, timer.stop())
+      }
+      sender() ! state
+    case ResumeGame =>
+      if(state.paused){
+        timer.start()
+        updateState(ResumeGame.toString, timer.elapsed())
+      }
+      sender() ! state
+    case ReceiveTimeout => // Stop the actor if idle (no messages received) time of actor surpass max idle time
+      logger.info(s"Stoping actor $id, has surpassed max idle time")
+      if(!state.paused){
+        autoPauseAndStopAfterIdle()
+      }else{
+        context.stop(self)
+      }
   }
 
   def snap(): Unit = {
       gameHistory = gameHistory.update(state)
-      saveSnapshot()
+      saveSnapshot(gameHistory)
       persist(state)(result => logger.info(s"Journal persist result for game: ${state.gameId} was: $result"))
   }
 
-  private def updateState(gameStatus: GameStatus, action: String): Unit ={
-      state = state.copy(gameStatus = gameStatus, lastAction = action )
-      snap()
+  private def autoPauseAndStopAfterIdle(): Unit ={
+    state = state.copy(timerInSeconds = timer.stop())
+    snap()
+    context.stop(self)
   }
 
-  private def updateState(action: String): Unit ={
-    state = state.copy(lastAction = action)
+  private def updateState(action: String, elapsed: Long): Unit ={
+    state = state.copy(lastAction = action, timerInSeconds = timer.elapsed())
     snap()
   }
 
   private def updateState(revealedCells: Int, action: String): Unit ={
-    state = state.copy( revealedCells = revealedCells, lastAction = action )
+    state = state.copy( revealedCells = revealedCells, lastAction = action , timerInSeconds = timer.elapsed())
     snap()
   }
 
-  private def updateState(gameStatus: GameStatus, revealedCells: Int, action: String): Unit ={
-    state = state.copy(gameStatus = gameStatus, revealedCells = revealedCells, lastAction = action )
+  private def updateState(gameStatus: GameStatus, revealedCells: Int, action: String, elapsed: Long): Unit ={
+    state = state.copy(gameStatus = gameStatus, revealedCells = revealedCells, lastAction = action , timerInSeconds = elapsed)
     snap()
   }
 
   private def validateIfWon(revealedCells: Int, action: String): Unit = {
     if(revealedCells == cellsToReveal){
-      updateState(GameStatus.Won, revealedCells, action)
+      updateState(GameStatus.Won, revealedCells, action, timer.stop())
     }else{
       updateState(revealedCells,action)
     }
@@ -114,13 +142,14 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
 object GameActor{
 
-  val snapShotInterval = 1000
   case object GetMinefield
   abstract class MinefieldOperation(val row: Int, val column: Int)
   case class RevealSpot(override val row: Int, override val column: Int) extends MinefieldOperation(row, column)
   case class MarkSpot(override val row: Int, override val column: Int, mark: MarkType) extends MinefieldOperation(row, column)
-  case object Snap
+  case object PauseGame
+  case object ResumeGame
 
+  case object Snap
   sealed case class GameHistory(historic: List[GameState] = Nil){
       def update(move: GameState): GameHistory = {
           copy(move::historic)
