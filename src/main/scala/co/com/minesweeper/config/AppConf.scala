@@ -23,7 +23,7 @@ object AppConf {
 
   val defaultAskTimeoutActors: Duration = Duration(appConfig.getString("default.ask-seconds-timeout"))
 
-  val gameActorMaxIdleTime: Duration = Duration(appConfig.getString("default.ask-seconds-timeout"))
+  val gameActorMaxIdleTime: Duration = Duration(appConfig.getString("default.game-actor.idle-max-time"))
 
   val allowedOrigins: mutable.Seq[String] = conf.getStringList("cors.allowed-origins").asScala
 

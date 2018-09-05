@@ -9,6 +9,7 @@ import co.com.minesweeper.BaseTest
 import co.com.minesweeper.api.codecs.Codecs
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.{GameOperationFailed, ServiceException}
+import co.com.minesweeper.model.messages.GameState
 import co.com.minesweeper.model.request.{MarkRequest, NewGameRequest, RevealRequest}
 import com.co.minesweeper.api.BuildInfo
 

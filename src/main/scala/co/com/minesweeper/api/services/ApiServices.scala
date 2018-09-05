@@ -9,13 +9,14 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import co.com.minesweeper.actor.GameActor
 import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.codecs.Codecs
 import co.com.minesweeper.model.error.{GameOperationFailed, ServiceException}
-import co.com.minesweeper.model.messages.GameResponseMessage
+import co.com.minesweeper.model.messages.{GameBasicOperation, GameHistory, GameResponseMessage, GameState}
 import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
-import co.com.minesweeper.model.{GameState, MinefieldConfig}
+import co.com.minesweeper.model.MinefieldConfig
 import co.com.minesweeper.util.BaseTimeout
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
@@ -59,6 +60,23 @@ trait ApiServices extends Codecs with BaseTimeout{
     resolveGameResponseFuture(markAction.mapTo[GameResponseMessage])
   }
 
+  def pauseGame(gameId: String): Route = {
+    sendBasicOperationMessage(gameId, GameActor.PauseGame)
+  }
+
+  def resumeGame(gameId: String): Route = {
+    sendBasicOperationMessage(gameId, GameActor.ResumeGame)
+  }
+
+  def getGameHistory(gameId: String): Route = {
+    sendBasicOperationMessage(gameId, GameActor.GetHistory)
+  }
+
+  def sendBasicOperationMessage(gameId: String, message: GameBasicOperation): Route = {
+    val askMessage = gameManagerActor ? SendGameMessage(gameId, message)
+    resolveGameResponseFuture(askMessage.mapTo[GameResponseMessage])
+  }
+
   private def resolveGameResponseFuture(result: Future[GameResponseMessage]): Route = {
     onComplete(result){
       case Failure(exception) =>
@@ -66,7 +84,8 @@ trait ApiServices extends Codecs with BaseTimeout{
       case Success(value) =>
         value match {
           case nf: GameOperationFailed => complete(nf.statusCode -> nf)
-          case gm: GameState => complete(OK -> gm)
+          case gms: GameState => complete(OK -> gms)
+          case gmh: GameHistory => complete(OK -> gmh)
         }
     }
   }

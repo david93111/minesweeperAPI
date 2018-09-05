@@ -51,6 +51,35 @@
 			"response": []
 		},
 		{
+			"name": "Get Game History",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/history",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						":gameId",
+						"history"
+					],
+					"variable": [
+						{
+							"key": "gameId",
+							"value": "58b49463-818a-4c32-8188-513981d43307"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Reveal Spot",
 			"request": {
 				"method": "PUT",
@@ -62,10 +91,10 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0\n}"
+					"raw": "{\n\t\"row\": 0,\n\t\"col\": 1\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/reveal?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/reveal",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -74,12 +103,13 @@
 					"path": [
 						"minesweeper",
 						"game",
+						":gameId",
 						"reveal"
 					],
-					"query": [
+					"variable": [
 						{
 							"key": "gameId",
-							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+							"value": "82383816-60d5-412f-bf2b-042ff9e40cb4"
 						}
 					]
 				}
@@ -101,7 +131,7 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"FlagMark\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=5adffae9-0b08-43fb-a30a-21830366c304",
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -110,12 +140,13 @@
 					"path": [
 						"minesweeper",
 						"game",
+						":gameId",
 						"mark"
 					],
-					"query": [
+					"variable": [
 						{
 							"key": "gameId",
-							"value": "5adffae9-0b08-43fb-a30a-21830366c304"
+							"value": "82383816-60d5-412f-bf2b-042ff9e40cb4"
 						}
 					]
 				}
@@ -137,7 +168,7 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"QuestionMark\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -146,12 +177,13 @@
 					"path": [
 						"minesweeper",
 						"game",
+						":gameId",
 						"mark"
 					],
-					"query": [
+					"variable": [
 						{
 							"key": "gameId",
-							"value": "b0debe47-3bf7-4295-b600-7b70123a9901"
+							"value": "82383816-60d5-412f-bf2b-042ff9e40cb4"
 						}
 					]
 				}
@@ -173,7 +205,7 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"None\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/mark?gameId=2ac6ab6b-dc49-4d35-9d38-0b004b05a351",
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -182,12 +214,87 @@
 					"path": [
 						"minesweeper",
 						"game",
+						":gameId",
 						"mark"
 					],
-					"query": [
+					"variable": [
 						{
 							"key": "gameId",
-							"value": "2ac6ab6b-dc49-4d35-9d38-0b004b05a351"
+							"value": "82383816-60d5-412f-bf2b-042ff9e40cb4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Pause Game",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/pause",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						":gameId",
+						"pause"
+					],
+					"variable": [
+						{
+							"key": "gameId",
+							"value": "58b49463-818a-4c32-8188-513981d43307"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Resume Game",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8010/minesweeper/game/:gameId/resume",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8010",
+					"path": [
+						"minesweeper",
+						"game",
+						":gameId",
+						"resume"
+					],
+					"variable": [
+						{
+							"key": "gameId",
+							"value": "58b49463-818a-4c32-8188-513981d43307"
 						}
 					]
 				}

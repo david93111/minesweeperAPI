@@ -35,21 +35,29 @@ class Api(val log: LoggingAdapter)(implicit val actorSystem: ActorSystem, materi
                   }
                 }
               }
-            } ~ pathPrefix("reveal") {
-              parameter("gameId".as[String]) { gameId =>
+            } ~ path(Segment / "reveal") { gameId =>
                 put {
                   entity(as[RevealRequest]) { reveal =>
                     revealSpot(gameId, reveal)
                   }
                 }
-              }
-            } ~ pathPrefix("mark") {
-              parameter("gameId".as[String]) { gameId =>
+            } ~ path(Segment / "mark") { gameId =>
                 put {
                   entity(as[MarkRequest]) { mark =>
                     markSpot(gameId, mark)
                   }
                 }
+            } ~ path(Segment / "pause") { gameId =>
+              patch {
+                pauseGame(gameId)
+              }
+            } ~ path(Segment / "resume") { gameId =>
+              patch {
+                resumeGame(gameId)
+              }
+            } ~ path(Segment / "history") { gameId =>
+              get {
+                getGameHistory(gameId)
               }
             }
           } ~ version() ~ healthCheck()

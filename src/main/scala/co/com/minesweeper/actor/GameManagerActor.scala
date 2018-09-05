@@ -11,7 +11,8 @@ import co.com.minesweeper.actor.GameActor.{GetMinefield, Snap}
 import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.services.MinefieldService
 import co.com.minesweeper.model.error.GameOperationFailed
-import co.com.minesweeper.model.{GameState, GameStatus, MarkType, MinefieldConfig}
+import co.com.minesweeper.model.messages.{GameBasicOperation, GameState}
+import co.com.minesweeper.model.{GameStatus, MarkType, MinefieldConfig}
 
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -46,6 +47,11 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
         child ? GameActor.MarkSpot (row, col, mark)
       }
       sendToChild(actorId, fMarkSpot, sender)
+    case SendGameMessage(actorId, message) =>
+      val fAskMessage = { child: ActorRef =>
+        child ? message
+      }
+      sendToChild(actorId, fAskMessage, sender)
   }
 
   def createNewGameOnRouter(gameId: String, game: GameState): ActorRef ={
@@ -117,7 +123,8 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
 
 object GameManagerActor{
 
-  // Implemented using ConsistentHashtable, this is going to be useful to add sharding in near future
+  // Implemented using ConsistentHashtable, this is going to be useful to add sharding in near future changing
+  // this for shard region with extract entityId
   case class CreateGame(gameId: String, minefieldConf: MinefieldConfig, username: String) extends ConsistentHashable{
     override def consistentHashKey: Any = gameId
   }
@@ -128,6 +135,9 @@ object GameManagerActor{
     override def consistentHashKey: Any = gameId
   }
   case class SendMarkSpot(gameId: String, row: Int, col: Int, mark: MarkType) extends ConsistentHashable{
+    override def consistentHashKey: Any = gameId
+  }
+  case class SendGameMessage(gameId: String, message: GameBasicOperation) extends ConsistentHashable{
     override def consistentHashKey: Any = gameId
   }
 

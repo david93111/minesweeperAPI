@@ -3,6 +3,7 @@ package co.com.minesweeper.api.codecs
 import co.com.minesweeper.api.codecs.exception.ExceptionCodecs
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.GameOperationFailed
+import co.com.minesweeper.model.messages.{GameHistory, GameState}
 import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, NewGameRequest, RevealRequest}
 import io.circe.generic.semiauto._
@@ -18,6 +19,8 @@ trait Codecs extends ExceptionCodecs{
   implicit val gameEncoder: Encoder[GameState] = deriveEncoder[GameState]
   implicit val gameNotFoundDecoder: Decoder[GameOperationFailed] = deriveDecoder[GameOperationFailed]
   implicit val gameNotFoundEncoder: Encoder[GameOperationFailed] = deriveEncoder[GameOperationFailed]
+  implicit val gameHistoryDecoder: Decoder[GameHistory] = deriveDecoder[GameHistory]
+  implicit val gameHistoryEncoder: Encoder[GameHistory] = deriveEncoder[GameHistory]
 
   // Request Decoders And Encoders
   implicit val markRequestDecoder: Decoder[MarkRequest] = deriveDecoder[MarkRequest]

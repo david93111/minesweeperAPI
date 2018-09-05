@@ -6,7 +6,8 @@ import akka.testkit.{ImplicitSender, TestKit}
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameManagerActor.{CreateGame, GetGame, SendMarkSpot, SendRevealSpot}
 import co.com.minesweeper.model.error.GameOperationFailed
-import co.com.minesweeper.model.{GameState, GameStatus, MarkType, MinefieldConfig}
+import co.com.minesweeper.model.messages.GameState
+import co.com.minesweeper.model.{GameStatus, MarkType, MinefieldConfig}
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.ExecutionContextExecutor

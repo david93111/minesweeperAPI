@@ -6,6 +6,7 @@ import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameActor.{GetMinefield, MarkSpot, RevealSpot}
 import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model._
+import co.com.minesweeper.model.messages.GameState
 import org.scalatest.BeforeAndAfterAll
 
 class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with ImplicitSender

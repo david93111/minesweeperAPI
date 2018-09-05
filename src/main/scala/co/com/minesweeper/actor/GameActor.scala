@@ -7,6 +7,7 @@ import co.com.minesweeper.api.services.MinefieldService
 import co.com.minesweeper.config.AppConf
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.GameOperationFailed
+import co.com.minesweeper.model.messages.{GameBasicOperation, GameHistory, GameState}
 import co.com.minesweeper.util.Timer
 
 class GameActor(val id: String, currentGame: GameState) extends PersistentActor with BaseActor {
@@ -23,7 +24,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
     timer.start()
   }
 
-  var gameHistory: GameActor.GameHistory = GameHistory()
+  var gameHistory: GameHistory = GameHistory()
 
   val cellsToReveal: Int = (state.minefield.rows * state.minefield.columns) - state.minefield.mines
 
@@ -59,10 +60,9 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
   override def receiveRecover: Receive = {
     case game: GameState =>
-      state = game
       gameHistory = gameHistory.update(game)
     case SnapshotOffer(_, snapshot: GameHistory ) =>
-      gameHistory = snapshot
+      gameHistory = snapshot // The GameManager already take care of found last journal and assuming it functional
   }
 
   override def receiveCommand: Receive = {
@@ -81,7 +81,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
         minefieldOperationsReceive(e)
     case PauseGame =>
       if(!state.paused){
-        updateState(PauseGame.toString, timer.stop())
+        updateState(PauseGame.toString, timer.stop(), paused = true)
       }
       sender() ! state
     case ResumeGame =>
@@ -90,6 +90,8 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
         updateState(ResumeGame.toString, timer.elapsed())
       }
       sender() ! state
+    case GetHistory =>
+      sender() ! gameHistory
     case ReceiveTimeout => // Stop the actor if idle (no messages received) time of actor surpass max idle time
       logger.info(s"Stoping actor $id, has surpassed max idle time")
       if(!state.paused){
@@ -111,8 +113,8 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
     context.stop(self)
   }
 
-  private def updateState(action: String, elapsed: Long): Unit ={
-    state = state.copy(lastAction = action, timerInSeconds = timer.elapsed())
+  private def updateState(action: String, elapsed: Long, paused: Boolean = false): Unit ={
+    state = state.copy(lastAction = action, timerInSeconds = timer.elapsed(), paused = paused)
     snap()
   }
 
@@ -146,17 +148,12 @@ object GameActor{
   abstract class MinefieldOperation(val row: Int, val column: Int)
   case class RevealSpot(override val row: Int, override val column: Int) extends MinefieldOperation(row, column)
   case class MarkSpot(override val row: Int, override val column: Int, mark: MarkType) extends MinefieldOperation(row, column)
-  case object PauseGame
-  case object ResumeGame
+
+  case object PauseGame extends GameBasicOperation
+  case object ResumeGame extends GameBasicOperation
+  case object GetHistory extends GameBasicOperation
 
   case object Snap
-  sealed case class GameHistory(historic: List[GameState] = Nil){
-      def update(move: GameState): GameHistory = {
-          copy(move::historic)
-      }
-      def getLastMovement: Option[GameState] = historic.headOption
-    override def toString: String = historic.reverse.mkString("|-|")
-  }
 
   def props( id: String, game: GameState): Props = {
     Props(new GameActor(id, game))
