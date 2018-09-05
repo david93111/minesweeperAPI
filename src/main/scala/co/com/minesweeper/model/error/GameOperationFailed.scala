@@ -6,8 +6,8 @@ case class GameOperationFailed(message: String, gameId: String, statusCode: Int,
 
 object GameOperationFailed{
 
-  def gameNotFound(id: String): GameOperationFailed = {
-    new GameOperationFailed("The requested game was not found on memory or does not exist, please create a new one", id, 404)
+  def gameNotFound(id: String, messsage: String = ""): GameOperationFailed = {
+    new GameOperationFailed(s"The requested game was not found: $messsage", id, 404)
   }
 
   def invalidCell(id: String): GameOperationFailed = {

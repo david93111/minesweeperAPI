@@ -6,7 +6,7 @@ import akka.testkit.{ImplicitSender, TestKit}
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameManagerActor.{CreateGame, GetGame, SendMarkSpot, SendRevealSpot}
 import co.com.minesweeper.model.error.GameOperationFailed
-import co.com.minesweeper.model.{Game, GameStatus, MarkType, MinefieldConfig}
+import co.com.minesweeper.model.{GameState, GameStatus, MarkType, MinefieldConfig}
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.ExecutionContextExecutor
@@ -30,7 +30,7 @@ class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-
 
       gameManagerActor ! CreateGame("game1", minefieldConfig, "user1")
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.rows shouldEqual 2
           game.minefield.columns shouldEqual 3
@@ -46,7 +46,7 @@ class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-
 
       gameManagerActor ! GetGame("game1")
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.rows shouldEqual 2
           game.minefield.columns shouldEqual 3
@@ -75,7 +75,7 @@ class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-
 
       gameManagerActor ! SendMarkSpot("game1",0,0, MarkType.QuestionMark)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(0).mark shouldEqual MarkType.QuestionMark
           game.gameStatus shouldEqual GameStatus.Active
@@ -103,7 +103,7 @@ class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-
 
       gameManagerActor ! SendRevealSpot("game1",0,0)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(0).revealed shouldEqual true
         case e =>

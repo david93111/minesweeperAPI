@@ -25,7 +25,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Get game expected from actor through message" in {
       gameActor ! GetMinefield
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.rows shouldEqual 6
           game.minefield.columns shouldEqual 5
@@ -38,7 +38,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Send message to actor to mark a spot with a flag" in {
       gameActor ! MarkSpot(0,1, MarkType.FlagMark)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(1).mark shouldEqual MarkType.FlagMark
         case e =>
@@ -49,7 +49,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Send message to actor to mark a spot with a Question" in {
       gameActor ! MarkSpot(0,2, MarkType.QuestionMark)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(2).mark shouldEqual MarkType.QuestionMark
         case e =>
@@ -60,7 +60,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Remove an existing mark on a spot marked and not revealed" in {
       gameActor ! MarkSpot(0,1, MarkType.None)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(0).mark shouldEqual MarkType.None
         case e =>
@@ -71,7 +71,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Allow to remove a mark even on a revealed spot if game active" in {
       gameActor ! MarkSpot(0,0, MarkType.None)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameStatus shouldEqual GameStatus.Active
           game.minefield.board(0)(0).mark shouldEqual MarkType.None
         case e =>
@@ -82,7 +82,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
     "Send message to actor to reveal a spot" in {
       gameActor ! RevealSpot(0,0)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(0).revealed shouldEqual true
         case e =>
@@ -115,7 +115,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
       val game = system.actorOf(GameActor.props("game2" ,config, "user2"))
       game ! RevealSpot(0,0)
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game2")
           game.minefield.board(0)(0).revealed shouldEqual true
           game.gameStatus shouldEqual GameStatus.Lose
@@ -129,13 +129,13 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
       val actor = system.actorOf(GameActor.props("game3" ,config, "user2"))
       actor ! GetMinefield
       expectMsgPF()({
-        case game: Game =>
+        case game: GameState =>
           game.gameId.shouldEqual("game3")
           game.gameStatus shouldEqual GameStatus.Active
           val targetHint = game.minefield.board.map(_.toList).toList.flatten.filter(_.fieldType == FieldType.Hint).head
           actor ! RevealSpot(targetHint.row, targetHint.col)
           expectMsgPF()({
-            case game: Game =>
+            case game: GameState =>
               game.gameId.shouldEqual("game3")
               game.minefield.board(targetHint.row)(targetHint.col).revealed shouldEqual true
               game.gameStatus shouldEqual GameStatus.Active

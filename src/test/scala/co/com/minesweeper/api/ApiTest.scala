@@ -69,7 +69,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Post("/minesweeper/game", gameRequest) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        val response = responseAs[Game]
+        val response = responseAs[GameState]
         response.username shouldEqual "user1"
         response.gameStatus shouldEqual GameStatus.Active
         gameId = response.gameId
@@ -81,7 +81,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Get(s"/minesweeper/game?gameId=$gameId") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        responseAs[Game].gameId shouldEqual gameId
+        responseAs[GameState].gameId shouldEqual gameId
       }
     }
 
@@ -112,7 +112,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Put(s"/minesweeper/game/mark?gameId=$gameId", markRequest) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        val response = responseAs[Game]
+        val response = responseAs[GameState]
         response.minefield.board(0)(0).mark shouldEqual MarkType.QuestionMark
       }
     }
@@ -123,7 +123,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Put(s"/minesweeper/game/mark?gameId=$gameId", markRequest) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        val response = responseAs[Game]
+        val response = responseAs[GameState]
         response.minefield.board(0)(1).mark shouldEqual MarkType.FlagMark
       }
     }
@@ -134,7 +134,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Put(s"/minesweeper/game/mark?gameId=$gameId", markRequest) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        val response = responseAs[Game]
+        val response = responseAs[GameState]
         response.minefield.board(0)(0).mark shouldEqual MarkType.None
       }
     }
@@ -145,7 +145,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
       Put(s"/minesweeper/game/reveal?gameId=$gameId", revealRequest) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
-        val response = responseAs[Game]
+        val response = responseAs[GameState]
         response.minefield.board(0)(0).revealed shouldEqual true
       }
     }

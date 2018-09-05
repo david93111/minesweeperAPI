@@ -14,8 +14,8 @@ trait Codecs extends ExceptionCodecs{
   implicit val fieldDecoder: Decoder[Field] = deriveDecoder[Field]
   implicit val minefieldDecoder: Decoder[Minefield] = deriveDecoder[Minefield]
   implicit val minefieldEncoder: Encoder[Minefield] = deriveEncoder[Minefield]
-  implicit val gameDecoder: Decoder[Game] = deriveDecoder[Game]
-  implicit val gameEncoder: Encoder[Game] = deriveEncoder[Game]
+  implicit val gameDecoder: Decoder[GameState] = deriveDecoder[GameState]
+  implicit val gameEncoder: Encoder[GameState] = deriveEncoder[GameState]
   implicit val gameNotFoundDecoder: Decoder[GameOperationFailed] = deriveDecoder[GameOperationFailed]
   implicit val gameNotFoundEncoder: Encoder[GameOperationFailed] = deriveEncoder[GameOperationFailed]
 

@@ -6,12 +6,13 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.routing.FromConfig
+import akka.stream.ActorMaterializer
 import co.com.minesweeper.actor.GameManagerActor
 import co.com.minesweeper.api.services.ApiServices
 import co.com.minesweeper.model.request.{MarkRequest, NewGameRequest, RevealRequest}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
-class Api(val log: LoggingAdapter)(implicit val actorSystem: ActorSystem) extends ApiBase with ApiServices{
+class Api(val log: LoggingAdapter)(implicit val actorSystem: ActorSystem, materializer: ActorMaterializer) extends ApiBase with ApiServices{
 
   implicit val executionContext: MessageDispatcher = actorSystem.dispatchers.lookup("dispatchers.base-dispatcher")
 

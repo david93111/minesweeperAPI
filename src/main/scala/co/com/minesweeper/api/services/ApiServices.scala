@@ -15,21 +15,19 @@ import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model.messages.GameResponseMessage
 import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
-import co.com.minesweeper.model.{Game, MinefieldConfig}
+import co.com.minesweeper.model.{GameState, MinefieldConfig}
+import co.com.minesweeper.util.BaseTimeout
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Failure, Success}
 
-trait ApiServices extends Codecs{
+trait ApiServices extends Codecs with BaseTimeout{
 
   val actorSystem: ActorSystem
 
   implicit val executionContext: MessageDispatcher
-
-  val d = Duration("10s")
-  implicit val timeout: Timeout = Timeout(FiniteDuration(d.length, d.unit))
 
   val gameManagerActor: ActorRef
 
@@ -37,7 +35,7 @@ trait ApiServices extends Codecs{
     val gameId = UUID.randomUUID().toString
     val gameMessage = CreateGame(gameId, MinefieldConfig(settings.rows, settings.columns, settings.mines), settings.user)
     val gameCreation = gameManagerActor ? gameMessage
-    val result = gameCreation.mapTo[Game]
+    val result = gameCreation.mapTo[GameState]
     onComplete(result){
       case Failure(exception) =>
         complete(InternalServerError -> s"Unexpected error creating new game cause: ${exception.getMessage}")
@@ -68,7 +66,7 @@ trait ApiServices extends Codecs{
       case Success(value) =>
         value match {
           case nf: GameOperationFailed => complete(nf.statusCode -> nf)
-          case gm: Game => complete(OK -> gm)
+          case gm: GameState => complete(OK -> gm)
         }
     }
   }

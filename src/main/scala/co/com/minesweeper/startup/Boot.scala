@@ -19,7 +19,7 @@ object Boot extends App {
 
   val log: LoggingAdapter = Logging(actorSystem.eventStream, "akka_minesweeper")
 
-  val api = new Api(log)(actorSystem)
+  val api = new Api(log)(actorSystem, materializer)
   val bindingFuture = Http().bindAndHandle(api.route, appHost , appPort)
 
   bindingFuture.onComplete{
