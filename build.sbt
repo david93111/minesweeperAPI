@@ -1,4 +1,4 @@
-name := "minesweeperMS"
+name := "minesweeperms"
 
 version := "1.0.0Beta1"
 
