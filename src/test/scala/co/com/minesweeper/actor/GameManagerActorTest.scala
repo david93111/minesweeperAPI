@@ -1,8 +1,12 @@
 package co.com.minesweeper.actor
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.contrib.persistence.mongodb.ScalaDslMongoReadJournal
+import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnapshotStorage, StorageExtension}
 import akka.routing.FromConfig
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.stream.ActorMaterializer
+import akka.testkit.{ImplicitSender, TestKit, TestProbe}
+import akka.util.Timeout
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameManagerActor.{CreateGame, GetGame, SendMarkSpot, SendRevealSpot}
 import co.com.minesweeper.model.error.GameOperationFailed
@@ -11,9 +15,22 @@ import co.com.minesweeper.model.{GameStatus, MarkType, MinefieldConfig}
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
-class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-test")) with ImplicitSender
+class GameManagerActorTest extends TestKit(ActorSystem("GameManagerActorTest-system")) with ImplicitSender
   with BaseTest with BeforeAndAfterAll{
+
+  implicit val timeout: Timeout = Timeout(FiniteDuration(10L, SECONDS))
+
+  // Clear in journal memory for default behavior on actor persistence
+  override def beforeAll: Unit = {
+    val tp = TestProbe()
+    tp.send(StorageExtension(system).journalStorage, InMemoryJournalStorage.ClearJournal)
+    tp.expectMsg(akka.actor.Status.Success(""))
+    tp.send(StorageExtension(system).snapshotStorage, InMemorySnapshotStorage.ClearSnapshots)
+    tp.expectMsg(akka.actor.Status.Success(""))
+    super.beforeAll()
+  }
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
@@ -22,8 +39,13 @@ class GameManagerActorTest extends TestKit(ActorSystem("gameManagerActor-system-
   "Game Manager Actor Router Test Should" - {
 
     implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-    val gameManagerActor: ActorRef = system.actorOf(FromConfig.props(GameManagerActor.props()), "gameManager")
+    val actorManagerOverrideJournal = Props(new GameManagerActor()(executionContext,materializer){
+      override def loadJournal: Option[ScalaDslMongoReadJournal] = None
+    })
+
+    val gameManagerActor: ActorRef = system.actorOf(FromConfig.props(actorManagerOverrideJournal), "gameManager")
 
     val minefieldConfig: MinefieldConfig = MinefieldConfig(2,3,1)
 

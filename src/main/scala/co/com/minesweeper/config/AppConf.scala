@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 
 object AppConf {
 
-  val conf: Config = ConfigFactory.load()
+  val conf: Config = ConfigFactory.load("application")
 
   val serverConf: Config = conf.getConfig("http")
   val appHost: String = serverConf.getString("host")

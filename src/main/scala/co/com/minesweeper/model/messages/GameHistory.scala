@@ -6,5 +6,7 @@ case class GameHistory(historic: List[GameState] = Nil) extends GameResponseMess
   }
   def getLastMovement: Option[GameState] = historic.headOption
 
+  def history: List[GameState] = historic
+
   override def toString: String = historic.reverse.mkString("\n")
 }

@@ -24,7 +24,7 @@ sealed class Timer(var startAt: Long) {
       startAt
     }else {
       val elapsed = System.nanoTime() - startedAt
-      (elapsed / 1e9).toLong + startAt
+      (elapsed / 1e9).round + startAt
     }
   }
 

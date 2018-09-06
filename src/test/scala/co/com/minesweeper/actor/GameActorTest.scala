@@ -1,27 +1,50 @@
 package co.com.minesweeper.actor
 
-import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.{ActorSystem, Props}
+import akka.persistence.{Recovery, SnapshotSelectionCriteria}
+import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnapshotStorage, StorageExtension}
+import akka.testkit.{ImplicitSender, TestKit, TestProbe}
+import akka.util.Timeout
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameActor.{GetMinefield, MarkSpot, RevealSpot}
+import co.com.minesweeper.api.services.MinefieldService
+import co.com.minesweeper.model.GameStatus.Won
 import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.messages.GameState
 import org.scalatest.BeforeAndAfterAll
 
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
+
 class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with ImplicitSender
   with BaseTest with BeforeAndAfterAll {
+
+  implicit val timeout: Timeout = Timeout(FiniteDuration(10L, SECONDS))
+
+  override def beforeAll: Unit = {
+    val tp = TestProbe()
+    tp.send(StorageExtension(system).journalStorage, InMemoryJournalStorage.ClearJournal)
+    tp.expectMsg(akka.actor.Status.Success(""))
+    tp.send(StorageExtension(system).snapshotStorage, InMemorySnapshotStorage.ClearSnapshots)
+    tp.expectMsg(akka.actor.Status.Success(""))
+    super.beforeAll()
+  }
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
-  val minefieldConfig = MinefieldConfig(6, 5, 0)
+  val conf = MinefieldConfig(6, 5, 0)
   val user = "user1"
 
   "GameActor Test Should create a new game actor and then should" - {
-
-    val gameActor = system.actorOf(GameActor.props("game1" ,minefieldConfig, user))
+    val gameState = GameState("game1", GameStatus.Active, user, MinefieldService.createMinefield(conf.columns, conf.rows, conf.mines))
+    val gameActorProps = Props(
+      new GameActor("game1", gameState){
+        override def recovery = Recovery(fromSnapshot = SnapshotSelectionCriteria.None, replayMax = 0L)
+      }
+    )
+    val gameActor = system.actorOf(GameActor.props("game1" , gameState))
 
     "Get game expected from actor through message" in {
       gameActor ! GetMinefield
@@ -86,6 +109,7 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
         case game: GameState =>
           game.gameId.shouldEqual("game1")
           game.minefield.board(0)(0).revealed shouldEqual true
+          game.gameStatus shouldEqual Won
         case e =>
           fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a Game")
       })
@@ -95,7 +119,8 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
       gameActor ! MarkSpot(0,0, MarkType.QuestionMark)
       expectMsgPF()({
         case error: GameOperationFailed =>
-          error.message shouldEqual "Operation not allowed, the game has finished already"
+          error.statusCode shouldEqual 409
+          error.message should startWith("Operation not allowed")
         case e =>
           fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a GameOperationFailed")
       })
@@ -105,7 +130,8 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
       gameActor ! RevealSpot(0,1)
       expectMsgPF()({
         case error: GameOperationFailed =>
-          error.message shouldEqual "Operation not allowed, the game has finished already"
+          error.statusCode shouldEqual 409
+          error.message should startWith("Operation not allowed")
         case e =>
           fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a GameOperationFailed")
       })
@@ -113,7 +139,8 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
 
     "Create new game and reveal a mine, game must pass to Lose state" in {
       val config = MinefieldConfig(2, 2, 4)
-      val game = system.actorOf(GameActor.props("game2" ,config, "user2"))
+      val game2 = GameState("game2", GameStatus.Active, "user2", MinefieldService.createMinefield(config.columns, config.rows, config.mines))
+      val game = system.actorOf(GameActor.props("game2",  game2))
       game ! RevealSpot(0,0)
       expectMsgPF()({
         case game: GameState =>
@@ -127,7 +154,8 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
 
     "Create new game , get game board and then reveal a Hint, game must remain active" in {
       val config = MinefieldConfig(2, 2, 1)
-      val actor = system.actorOf(GameActor.props("game3" ,config, "user2"))
+      val game3 = GameState("game3", GameStatus.Active, "user2", MinefieldService.createMinefield(config.columns, config.rows, config.mines))
+      val actor = system.actorOf(GameActor.props("game3" , game3))
       actor ! GetMinefield
       expectMsgPF()({
         case game: GameState =>

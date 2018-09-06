@@ -28,7 +28,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
   val cellsToReveal: Int = (state.minefield.rows * state.minefield.columns) - state.minefield.mines
 
-  val validateCellOperation: (Int, Int) => Boolean = MinefieldService.cellInValidRange(state.minefield.columns, state.minefield.columns)
+  val validateCellOperation: (Int, Int) => Boolean = MinefieldService.cellInValidRange(state.minefield.columns, state.minefield.rows)
 
   def minefieldOperationsReceive: Receive = {
     case reveal: RevealSpot=>
@@ -44,7 +44,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
             validateIfWon(state.revealedCells + 1, reveal.toString)
           case FieldType.Empty =>
             val quantityRevealed = MinefieldService.revealSpotsUntilHintOrMine(state.minefield.board, MinefieldService.nearSpots(reveal.row, reveal.column),validateCellOperation)
-            val newRevealed: Int = state.revealedCells + quantityRevealed
+            val newRevealed: Int = state.revealedCells + quantityRevealed + 1
             validateIfWon(newRevealed, reveal.toString)
         }
         sender() ! state
@@ -137,10 +137,11 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
   }
 
   private def validateIfWon(revealedCells: Int, action: String): Unit = {
-    if(revealedCells == cellsToReveal){
+    logger.error(s"revealed cells = $revealedCells vs cells to reveal = $cellsToReveal")
+    if(state.revealedCells + revealedCells == cellsToReveal){
       updateState(GameStatus.Won, revealedCells, action, timer.stop())
     }else{
-      updateState(revealedCells,action)
+      updateState(revealedCells, action)
     }
   }
 

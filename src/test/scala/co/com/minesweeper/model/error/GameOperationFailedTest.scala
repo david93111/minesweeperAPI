@@ -10,7 +10,7 @@ class GameOperationFailedTest extends BaseTest{
 
       val failedGame = GameOperationFailed.gameNotFound("GameId")
       failedGame.statusCode shouldEqual 404
-
+      failedGame.message should startWith("The requested game was not found")
     }
 
     "Create a cellAlreadyRevealed error with 409 status code" in{
@@ -24,7 +24,7 @@ class GameOperationFailedTest extends BaseTest{
     "Create a GameFinished error with 409 status code" in{
 
       val failedGame = GameOperationFailed.GameFinishedOrPaused("GameId")
-      failedGame.message shouldEqual "Operation not allowed, the game has finished already"
+      failedGame.message should startWith("Operation not allowed, the game")
       failedGame.statusCode shouldEqual 409
 
     }
