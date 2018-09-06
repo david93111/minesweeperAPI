@@ -1,3 +1,12 @@
+- 0.0.1
+  + First stable release with basic features and only in memory persistence :
+    - Create a new game
+    - Reveal a spot, reveal until won, or lose if mine revealed
+    - Mark spot with Question mark or with a Flag mark
+    - Remove a previous mark
+    - Health Check (useful for balancing) and API version exposed
+  + Release compatible with first version of JS Client
+
 - 0.0.1Beta2
   + API defined
   + Akka Actor System added to manage multiple games at time, and parallel execution using routing and hash table
