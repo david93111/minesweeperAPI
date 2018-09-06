@@ -18,12 +18,7 @@
     </appender>
 
 
-    <logger name="akka" level="WARN"/>
-
-
-    <logger name="LOGGING" level="ERROR" additivity="false">
-        <appender-ref ref="ASYNC_CONSOLE"/>
-    </logger>
+    <logger name="akka" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="ASYNC_CONSOLE"/>

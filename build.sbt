@@ -46,7 +46,7 @@ val generalDependencies = Seq(
   "com.github.scullxbones" %%   "akka-persistence-mongo-rxmongo" % "2.0.11",
   "org.reactivemongo"      %%   "reactivemongo"                  % rxMongoVersion,
   "org.reactivemongo"      %%   "reactivemongo-akkastream"       % rxMongoVersion,
-  "com.github.romix.akka"  %% "akka-kryo-serialization"          % "0.5.1"
+  "com.github.romix.akka"  %%   "akka-kryo-serialization"        % "0.5.2"
 )
 
 parallelExecution in Test:=false

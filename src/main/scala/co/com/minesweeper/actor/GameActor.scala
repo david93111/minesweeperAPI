@@ -1,7 +1,7 @@
 package co.com.minesweeper.actor
 
 import akka.actor.{Props, ReceiveTimeout}
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.{PersistentActor, Recovery, SnapshotOffer, SnapshotSelectionCriteria}
 import co.com.minesweeper.actor.GameActor._
 import co.com.minesweeper.api.services.MinefieldService
 import co.com.minesweeper.config.AppConf
@@ -58,11 +58,17 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       } else sender() ! GameOperationFailed.cellAlreadyRevealed(id)
   }
 
+  // Explicit set of recovery, but using default configuration as fit perfectly for the scenario
+  override def recovery = Recovery(fromSnapshot = SnapshotSelectionCriteria.Latest)
+
+  // The GameManager already take care of found last journal and assuming the event as functional
   override def receiveRecover: Receive = {
     case game: GameState =>
+      logger.info(s"loading game state trough recover, adding to historic: state -> {}", game)
       gameHistory = gameHistory.update(game)
     case SnapshotOffer(_, snapshot: GameHistory ) =>
-      gameHistory = snapshot // The GameManager already take care of found last journal and assuming it functional
+      logger.info(s"loading snapshot trough recover, adding to historic: snapshot -> {}", snapshot)
+      gameHistory = snapshot
   }
 
   override def receiveCommand: Receive = {
@@ -95,20 +101,22 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
     case ReceiveTimeout => // Stop the actor if idle (no messages received) time of actor surpass max idle time
       logger.info(s"Stoping actor $id, has surpassed max idle time")
       if(!state.paused){
-        autoPauseAndStopAfterIdle()
+        autoPauseAndStopAfterIdle("AutoPaused")
       }else{
         context.stop(self)
       }
   }
 
   def snap(): Unit = {
-      gameHistory = gameHistory.update(state)
-      saveSnapshot(gameHistory)
-      persist(state)(result => logger.info(s"Journal persist result for game: ${state.gameId} was: $result"))
+      persist(state) { result =>
+        logger.info(s"Journal persist successful for game: ${state.gameId} was: $result")
+        gameHistory = gameHistory.update(result)
+        saveSnapshot(gameHistory)
+      }
   }
 
-  private def autoPauseAndStopAfterIdle(): Unit ={
-    state = state.copy(timerInSeconds = timer.stop())
+  private def autoPauseAndStopAfterIdle(action: String): Unit ={
+    state = state.copy(timerInSeconds = timer.stop(), paused = true, lastAction = action)
     snap()
     context.stop(self)
   }
