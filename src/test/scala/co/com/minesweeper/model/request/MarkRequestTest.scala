@@ -9,9 +9,17 @@ class MarkRequestTest extends BaseTest{
 
   "MarkRequest Test should" -{
 
-    "Fail if parameters don't meet the requirements" in {
+    "Fail if rows don't meet the requirements" in {
 
       Try(MarkRequest(-1,0,MarkType.FlagMark))
+        .failed
+        .map(ex => ex shouldBe classOf[IllegalArgumentException])
+
+    }
+
+    "Fail if columns don't meet the requirements" in {
+
+      Try(MarkRequest(0,-1,MarkType.FlagMark))
         .failed
         .map(ex => ex shouldBe classOf[IllegalArgumentException])
 

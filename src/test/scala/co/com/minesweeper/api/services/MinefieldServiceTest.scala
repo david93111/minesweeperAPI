@@ -17,6 +17,16 @@ class MinefieldServiceTest extends BaseTest{
 
     }
 
+    "Create a new minefield with more mines greater than total size, mines should be equal to size" in {
+
+      val minefield = MinefieldService.createMinefield(3, 3, 15)
+
+      minefield.mines shouldEqual 9
+      minefield.board.length shouldEqual 3
+      minefield.board.head.length shouldEqual 3
+
+    }
+
     "Create a new minefield and reveal a field and all empty near fields" in {
 
       val minefield = MinefieldService.createMinefield(2, 2, 0)

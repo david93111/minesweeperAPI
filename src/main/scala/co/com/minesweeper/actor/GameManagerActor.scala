@@ -3,11 +3,12 @@ package co.com.minesweeper.actor
 import akka.actor.{ActorRef, Props}
 import akka.contrib.persistence.mongodb.{MongoReadJournal, ScalaDslMongoReadJournal}
 import akka.pattern.{Backoff, BackoffSupervisor, ask, pipe}
-import akka.persistence.query.{EventEnvelope, PersistenceQuery}
+import akka.persistence.query.scaladsl.{CurrentEventsByPersistenceIdQuery, CurrentEventsByTagQuery}
+import akka.persistence.query.{EventEnvelope, PersistenceQuery, scaladsl}
 import akka.routing.ConsistentHashingRouter.ConsistentHashable
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import co.com.minesweeper.actor.GameActor.{GetMinefield, Snap}
+import co.com.minesweeper.actor.GameActor.{GetGameState, Snap}
 import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.services.MinefieldService
 import co.com.minesweeper.model.error.GameOperationFailed
@@ -21,20 +22,21 @@ import scala.util.Try
 
 class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorMaterializer) extends BaseActor {
 
+
   // JournalReader can fail if loaded on startup, due to plugin not fully loaded and connection with MongoDB
   // May not be established correctly just after bootUp, load on first successful request is used instead
-  var journal: Option[ScalaDslMongoReadJournal] = None
+  var journal: Option[GameManagerReadJournal] = None
 
   override def receive: Receive = {
     case CreateGame(gameId, conf, username) =>
       val newGame = GameState(gameId, GameStatus.Active, username, MinefieldService.createMinefield(conf.columns, conf.rows, conf.mines))
       val actorRef = createNewGameOnRouter(gameId, newGame)
       actorRef ! Snap
-      actorRef.forward(GetMinefield)
+      actorRef.forward(GetGameState)
 
     case GetGame(actorId) =>
       val fGetGame = { child: ActorRef =>
-        child ? GetMinefield
+        child ? GetGameState
       }
       sendToChild(actorId, fGetGame, sender)
 
@@ -70,7 +72,7 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
     actorRef
   }
 
-  def loadJournal: Option[ScalaDslMongoReadJournal] = {
+  def loadJournal: Option[GameManagerReadJournal] = {
     if(journal.isEmpty) {
       journal = Try(
         PersistenceQuery(context.system).readJournalFor[ScalaDslMongoReadJournal](MongoReadJournal.Identifier)
@@ -79,7 +81,7 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
     journal
   }
 
-  def journalQueryEvents(journal: ScalaDslMongoReadJournal, actorId: String): Future[immutable.Seq[EventEnvelope]] = {
+  def journalQueryEvents(journal: GameManagerReadJournal, actorId: String): Future[immutable.Seq[EventEnvelope]] = {
     journal.currentEventsByPersistenceId(actorId, 0L, Long.MaxValue).runWith(Sink.seq)
   }
 
@@ -100,21 +102,16 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
       )
     } { journal =>
       journalQueryEvents(journal, actorId).flatMap { events =>
-        events.map { journal_event =>
-          journal_event.event match {
-            case game: GameState =>
-              Option(game)
-            case _ =>
-              None
-          }
-        }.reverse.find(_.isDefined).flatten.fold[Future[Any]](
+        events.reverse.collectFirst{
+          case EventEnvelope(_, _, _, event) if event.isInstanceOf[GameState] =>
+            event.asInstanceOf[GameState]
+        }.fold[Future[Any]](
           Future.successful(
             GameOperationFailed.gameNotFound(actorId, "Game does not exist on akka_journal or perhaps corrupted, please create a new game")
           )
         ) { validState =>
           logger.debug("Game with id: {} founded", actorId)
           val ref = createNewGameOnRouter(actorId, validState)
-          logger.debug("Game with id: {} created", actorId)
           functionOnFound(ref)
         }
       }
@@ -125,6 +122,8 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
 
 object GameManagerActor{
 
+  // Serves for testing purposes
+  type GameManagerReadJournal = scaladsl.ReadJournal with CurrentEventsByPersistenceIdQuery with CurrentEventsByTagQuery
   // Implemented using ConsistentHashtable, this is going to be useful to add sharding in near future changing
   // this for shard region with extract entityId
   case class CreateGame(gameId: String, minefieldConf: MinefieldConfig, username: String) extends ConsistentHashable{

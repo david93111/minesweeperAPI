@@ -8,14 +8,23 @@ class RevealRequestTest extends BaseTest{
 
   "Reveal Request Test Should" - {
 
+
     "Create a new reveal request if parameters are valid" in {
       val revealRequest: RevealRequest = RevealRequest(0,0)
       revealRequest.col shouldEqual 0
     }
 
-    "Fail for create a new reveal request with invalid parameters" in {
+    "Fail for create a new reveal request with invalid rows" in {
 
       Try(RevealRequest(-1,0))
+        .failed
+        .map(_ shouldBe classOf[IllegalArgumentException])
+
+    }
+
+    "Fail for create a new reveal request with invalid columns" in {
+
+      Try(RevealRequest(0,-1))
         .failed
         .map(_ shouldBe classOf[IllegalArgumentException])
 

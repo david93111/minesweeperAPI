@@ -59,6 +59,8 @@ enablePlugins(JavaServerAppPackaging)
 
 coverageMinimum := 80
 coverageFailOnMinimum := true
-coverageEnabled in Universal:= true
+coverageEnabled := true
+
+coverageExcludedPackages := "<empty>;Reverse.*;.*Boot.*"
 
 packageName in Universal := name.value

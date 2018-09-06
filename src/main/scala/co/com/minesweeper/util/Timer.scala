@@ -1,17 +1,25 @@
 package co.com.minesweeper.util
 
-sealed class Timer(var startAt: Long) {
+// Resilent implementation, avoid exception at all cost to have a clean implementation
+// As its use is designed only for internal purposes
+sealed class Timer(private var startAt: Long) {
 
-  var startedAt: Long = 0L
+  private var startedAt: Long = 0L
 
-  def start():Unit = {
-    startedAt = System.nanoTime()
+  private var stopped : Boolean = true
+
+  def start(): Unit = {
+    if(stopped) {
+      stopped = false
+      startedAt = System.nanoTime()
+    }
   }
 
   def stop(): Long = {
-    if(startedAt==0){
+    if(stopped){
       startAt
     }else{
+      stopped = true
       val elapsed = System.nanoTime() - startedAt
       startedAt = 0L
       startAt = (elapsed / 1e9).toLong + startAt
@@ -20,7 +28,7 @@ sealed class Timer(var startAt: Long) {
   }
 
   def elapsed(): Long ={
-    if(startedAt==0){
+    if(stopped){
       startAt
     }else {
       val elapsed = System.nanoTime() - startedAt

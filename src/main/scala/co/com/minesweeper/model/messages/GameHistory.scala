@@ -4,7 +4,6 @@ case class GameHistory(historic: List[GameState] = Nil) extends GameResponseMess
   def update(move: GameState): GameHistory = {
     copy(move::historic)
   }
-  def getLastMovement: Option[GameState] = historic.headOption
 
   def history: List[GameState] = historic
 

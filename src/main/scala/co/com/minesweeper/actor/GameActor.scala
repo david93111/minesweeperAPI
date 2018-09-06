@@ -62,19 +62,24 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
   override def recovery = Recovery(fromSnapshot = SnapshotSelectionCriteria.Latest)
 
   // The GameManager already take care of found last journal and assuming the event as functional
+  // But this is needed in case that actor crashed caused by an exception
   override def receiveRecover: Receive = {
     case game: GameState =>
       logger.info(s"loading game state trough recover, adding to historic: state -> {}", game)
+      state = state
       gameHistory = gameHistory.update(game)
     case SnapshotOffer(_, snapshot: GameHistory ) =>
       logger.info(s"loading snapshot trough recover, adding to historic: snapshot -> {}", snapshot)
       gameHistory = snapshot
+      if(gameHistory.history.nonEmpty){
+        state = gameHistory.history.head
+      }
   }
 
   override def receiveCommand: Receive = {
     case Snap =>
       snap()
-    case GetMinefield =>
+    case GetGameState =>
       logger.debug("Message of get minefield received, pulling historic {}", gameHistory.toString)
       sender() ! state
     case e: MinefieldOperation =>
@@ -98,7 +103,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       sender() ! state
     case GetHistory =>
       sender() ! gameHistory
-    case ReceiveTimeout => // Stop the actor if idle (no messages received) time of actor surpass max idle time
+    case ReceiveTimeout | AutoShutdown => // Stop the actor if idle (no messages received) time of actor surpass max idle time
       logger.info(s"Stoping actor $id, has surpassed max idle time")
       if(!state.paused){
         autoPauseAndStopAfterIdle("AutoPaused")
@@ -137,7 +142,6 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
   }
 
   private def validateIfWon(revealedCells: Int, action: String): Unit = {
-    logger.error(s"revealed cells = $revealedCells vs cells to reveal = $cellsToReveal")
     if(state.revealedCells + revealedCells == cellsToReveal){
       updateState(GameStatus.Won, revealedCells, action, timer.stop())
     }else{
@@ -153,7 +157,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
 object GameActor{
 
-  case object GetMinefield
+  case object GetGameState
   abstract class MinefieldOperation(val row: Int, val column: Int)
   case class RevealSpot(override val row: Int, override val column: Int) extends MinefieldOperation(row, column)
   case class MarkSpot(override val row: Int, override val column: Int, mark: MarkType) extends MinefieldOperation(row, column)
@@ -161,6 +165,9 @@ object GameActor{
   case object PauseGame extends GameBasicOperation
   case object ResumeGame extends GameBasicOperation
   case object GetHistory extends GameBasicOperation
+
+  // Class to avoid use of poson pill
+  case object AutoShutdown
 
   case object Snap
 

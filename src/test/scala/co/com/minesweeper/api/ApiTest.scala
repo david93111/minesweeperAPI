@@ -1,7 +1,6 @@
 package co.com.minesweeper.api
 
 import akka.actor.{ActorRef, Props}
-import akka.contrib.persistence.mongodb.ScalaDslMongoReadJournal
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
 import akka.http.scaladsl.server._
@@ -9,9 +8,9 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnapshotStorage, StorageExtension}
 import akka.routing.FromConfig
 import akka.testkit.{TestDuration, TestProbe}
-import cats.kernel.Comparison.GreaterThan
 import co.com.minesweeper.BaseTest
 import co.com.minesweeper.actor.GameManagerActor
+import co.com.minesweeper.actor.GameManagerActor.GameManagerReadJournal
 import co.com.minesweeper.api.codecs.Codecs
 import co.com.minesweeper.model._
 import co.com.minesweeper.model.error.{GameOperationFailed, ServiceException}
@@ -37,7 +36,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
   val log: LoggingAdapter = system.log
   val api: Api = new Api(log)(system,materializer){
     val actorManagerOverrideJournal = Props(new GameManagerActor()(executionContext,materializer){
-      override def loadJournal: Option[ScalaDslMongoReadJournal] = None
+      override def loadJournal: Option[GameManagerReadJournal] = None
     })
     override val gameManagerActor: ActorRef = actorSystem.actorOf(FromConfig.props(actorManagerOverrideJournal), "gameManagerTest")
   }
@@ -186,7 +185,7 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
         status shouldEqual StatusCodes.OK
         contentType shouldEqual ContentTypes.`application/json`
         val response = responseAs[GameHistory]
-        response.historic.nonEmpty shouldBe true
+        response.history.size should be > 0
       }
     }
 
@@ -209,6 +208,13 @@ class ApiTest extends BaseTest with ScalatestRouteTest with Codecs{
         val result = responseAs[GameOperationFailed]
         result.gameId shouldEqual "NonExistingGame"
         result.cause shouldEqual "GameOperationFailed"
+      }
+    }
+
+    "Respond with 200 OK for request of available options" in {
+      Options(s"/minesweeper") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
+        header("Access-Control-Allow-Methods").isDefined shouldEqual true
       }
     }
 

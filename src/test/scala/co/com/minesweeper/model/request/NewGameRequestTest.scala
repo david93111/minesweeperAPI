@@ -29,9 +29,33 @@ class NewGameRequestTest extends BaseTest{
 
     }
 
-    "Fail to create Game Settings from New Game Request with invalid values" in {
+    "Fail to create Game Settings from New Game Request with invalid rows" in {
 
-      val request  = NewGameRequest("user2", Some(-1), Some(0), Some(0))
+      val request  = NewGameRequest("user2", Some(-1), Some(2), Some(1))
+      Try(NewGameRequest.GameSettingsFromGameRequest(request))
+        .failed.map(_ shouldBe classOf[IllegalArgumentException])
+
+    }
+
+    "Fail to create Game Settings from New Game Request with invalid columns" in {
+
+      val request  = NewGameRequest("user2", Some(2), Some(-1), Some(1))
+      Try(NewGameRequest.GameSettingsFromGameRequest(request))
+        .failed.map(_ shouldBe classOf[IllegalArgumentException])
+
+    }
+
+    "Fail to create Game Settings from New Game Request with invalid mines" in {
+
+      val request  = NewGameRequest("user2", Some(2), Some(2), Some(-1))
+      Try(NewGameRequest.GameSettingsFromGameRequest(request))
+        .failed.map(_ shouldBe classOf[IllegalArgumentException])
+
+    }
+
+    "Fail to create Game Settings from New Game Request with invalid user" in {
+
+      val request  = NewGameRequest("", Some(2), Some(2), Some(1))
       Try(NewGameRequest.GameSettingsFromGameRequest(request))
         .failed.map(_ shouldBe classOf[IllegalArgumentException])
 

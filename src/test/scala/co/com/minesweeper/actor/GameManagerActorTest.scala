@@ -1,24 +1,26 @@
 package co.com.minesweeper.actor
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.contrib.persistence.mongodb.ScalaDslMongoReadJournal
 import akka.persistence.inmemory.extension.{InMemoryJournalStorage, InMemorySnapshotStorage, StorageExtension}
+import akka.persistence.inmemory.query.scaladsl.InMemoryReadJournal
+import akka.persistence.query.PersistenceQuery
 import akka.routing.FromConfig
 import akka.stream.ActorMaterializer
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import akka.util.Timeout
 import co.com.minesweeper.BaseTest
-import co.com.minesweeper.actor.GameManagerActor.{CreateGame, GetGame, SendMarkSpot, SendRevealSpot}
+import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model.messages.GameState
 import co.com.minesweeper.model.{GameStatus, MarkType, MinefieldConfig}
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Suite}
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.{FiniteDuration, SECONDS}
+import scala.util.Try
 
 class GameManagerActorTest extends TestKit(ActorSystem("GameManagerActorTest-system")) with ImplicitSender
-  with BaseTest with BeforeAndAfterAll{
+  with BaseTest with BeforeAndAfterAll{ _: Suite =>
 
   implicit val timeout: Timeout = Timeout(FiniteDuration(10L, SECONDS))
 
@@ -42,7 +44,12 @@ class GameManagerActorTest extends TestKit(ActorSystem("GameManagerActorTest-sys
     implicit val materializer: ActorMaterializer = ActorMaterializer()
 
     val actorManagerOverrideJournal = Props(new GameManagerActor()(executionContext,materializer){
-      override def loadJournal: Option[ScalaDslMongoReadJournal] = None
+      override def loadJournal: Option[GameManagerReadJournal] = {
+        if(journal.isEmpty) {
+          journal = Try(PersistenceQuery(system).readJournalFor[InMemoryReadJournal](InMemoryReadJournal.Identifier)).toOption
+        }
+        journal
+      }
     })
 
     val gameManagerActor: ActorRef = system.actorOf(FromConfig.props(actorManagerOverrideJournal), "gameManager")
