@@ -6,7 +6,15 @@ to represent and store games with event sourcing for game movements history, gam
 created with up to a 30 X 30 board with the desired quantity of mines distributed randomly across
 the board, time tracking, game pausing and resuming and also field marks features are present.
 
-as actors a great way to represent changing state, fit great also for encapsulate time tracking and
+### Why this stack ?
+
+Akka HTTP is not a framework, is a library that seeks on give the required and fundamentals tools to build
+an idiomatic API and low-level lightweight API not focused on interaction with the browser directly to render content,
+for this fit perfect to build Restful idiomatic APIs with a great concurrent system built on top of stream and with
+the combination of circe one of the best and more efficient json management library for scala is posible to write a
+totally type safe API with Entity fast coding and decoding 
+ 
+Actors a great way to represent changing state, fit great also for encapsulate time tracking and
 support high load with a top notch concurrent model avoiding all the dangers of paralellis cause actor is isolated
 and olny accesible through mailbox, so guarantee state preservation and correct transitions. 
 
@@ -102,7 +110,7 @@ on this link, the services are self explained and also documented on the code
 * Circe with Akka HTTP Circe for Marshalling of objects to achieve typed API 
 * Akka Actors to manage state of game
 * Akka Persistence to persist state of game actors and game state history as event sourcing
-* Akka Kryo for serialization of messages to be persisted (Useful for clustering also)
+* Akka Kryo for serialization of messages to be persisted as java serializer is not a good option in many cases (Useful for clustering also)
 * Reactivemongo Persistence Plugin as a reliable connector to MongoDB for data storing
 * InMemory Persistence Plugin For testing purposes of persistence process
 * Scalatest + AkkaTestkit + RouteScalaTest for unit test
