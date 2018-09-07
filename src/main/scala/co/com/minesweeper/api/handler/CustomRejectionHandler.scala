@@ -8,6 +8,8 @@ import akka.http.scaladsl.server.{Directive0, MalformedRequestContentRejection, 
 import co.com.minesweeper.api.codecs.exception.ExceptionCodecs
 import co.com.minesweeper.model.error.ServiceException
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
+
+/** custom rejection handler to make standard management as with exceptions of the more common rejection  */
 class CustomRejectionHandler(log: LoggingAdapter) extends ExceptionCodecs {
 
   val handler: RejectionHandler = RejectionHandler.newBuilder().handle({

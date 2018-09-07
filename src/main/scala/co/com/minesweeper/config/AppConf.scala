@@ -7,6 +7,11 @@ import com.typesafe.config.{Config, ConfigFactory}
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
+/**  Factory for application configuration and exposure of general configuration values on Application.conf.
+  *
+  *  @author david93111
+  *
+  * */
 object AppConf {
 
   val conf: Config = ConfigFactory.load("application")

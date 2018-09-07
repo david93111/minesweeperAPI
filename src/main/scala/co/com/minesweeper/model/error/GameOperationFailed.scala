@@ -2,6 +2,7 @@ package co.com.minesweeper.model.error
 
 import co.com.minesweeper.model.messages.GameResponseMessage
 
+/** Used for known failures or invalid operation in the Actors layer */
 case class GameOperationFailed(message: String, gameId: String, statusCode: Int, cause: String = "GameOperationFailed") extends GameResponseMessage
 
 object GameOperationFailed{

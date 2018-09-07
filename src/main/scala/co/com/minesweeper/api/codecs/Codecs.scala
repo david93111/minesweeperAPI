@@ -9,6 +9,13 @@ import co.com.minesweeper.model.request.{MarkRequest, NewGameRequest, RevealRequ
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 
+/**  Mixin with all the codecs of messages and model classes for marshalling
+  *
+  *  @author david93111
+  *
+  *  Designed to avoid the need of companion object on each class to be encoded or decoded with circe
+  *
+  * */
 trait Codecs extends ExceptionCodecs{
 
   implicit val fieldEncoder: Encoder[Field] = deriveEncoder[Field]

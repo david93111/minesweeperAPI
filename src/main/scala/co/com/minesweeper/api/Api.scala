@@ -12,6 +12,24 @@ import co.com.minesweeper.api.services.ApiServices
 import co.com.minesweeper.model.request.{MarkRequest, NewGameRequest, RevealRequest}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
+/**  RestFul Api Route for Game Services
+  *
+  *  @author david93111
+  *
+  *  Definition of Akka-HTTP route with all the services exposed for playing the minesweeper game
+  *
+  *  Expose service of game creation, recover a game and reveal or mark fields in a given game by id
+  *  Also expose services for pause or resume a game or see gamy history
+  *  Expose service of version to be able to see deployment version and verify if compatible with client library
+  *
+  *  Uses ActorSystem to create a parametrized Actor Router with Hashing for guarantee game state, also compatible
+  *  With cluster behavior to be implemented in the future using Shardinng
+  *
+  *  The ApiServices layer on [[co.com.minesweeper.api.services.ApiServices]] is on charge of sending messages to Router
+  *
+  *  Exceptions and Rejections are managed using default custom Handlers provided by [[co.com.minesweeper.api.ApiBase]]
+  *
+  * */
 class Api(val log: LoggingAdapter)(implicit val actorSystem: ActorSystem, materializer: ActorMaterializer) extends ApiBase with ApiServices{
 
   implicit val executionContext: MessageDispatcher = actorSystem.dispatchers.lookup("dispatchers.base-dispatcher")

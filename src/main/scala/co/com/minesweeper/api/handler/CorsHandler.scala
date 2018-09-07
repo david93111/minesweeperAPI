@@ -7,14 +7,16 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Route}
 import co.com.minesweeper.config.AppConf
 
+/** Handler for Cros Site Origin support*/
 class CorsHandler {
 
+  /** Assign parametrized origins in application.conf or env variables, if empty all origin are allowed */
   val allowedOrigins: HttpOriginRange = {
     val origins = AppConf.allowedOrigins.map(HttpOrigin(_))
     if(origins.isEmpty) HttpOriginRange.* else HttpOriginRange(origins:_*)
   }
 
-  //this directive adds access control headers to normal responses
+  /** this directive adds access control headers and allow authorization headers to normal responses */
   private def addAccessControlHeaders(): Directive0 = {
     respondWithHeaders(
       `Access-Control-Allow-Origin`(allowedOrigins),

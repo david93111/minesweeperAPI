@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "1d67a015-979b-40ff-9fe2-1f79486d44b5",
+		"_postman_id": "275babad-7a0e-4056-a495-886f317fed01",
 		"name": "minesweeper",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -19,7 +19,7 @@
 					"mode": "raw",
 					"raw": "{\n\t\"user\": \"testUser\",\n\t\"columns\": 5,\n\t\"rows\": 5,\n\t\"mines\": 5\n}"
 				},
-				"url": "http://localhost:8010/minesweeper/game"
+				"url": "{{minesweeperurl}}/minesweeper/game"
 			},
 			"response": []
 		},
@@ -28,14 +28,15 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game?gameId=b0debe47-3bf7-4295-b600-7b70123a9901",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game"
@@ -55,14 +56,15 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/history",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/history",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -94,12 +96,10 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 1\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/reveal",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/reveal",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -131,12 +131,10 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"FlagMark\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/mark",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -168,12 +166,10 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"QuestionMark\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/mark",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -205,12 +201,10 @@
 					"raw": "{\n\t\"row\": 0,\n\t\"col\": 0,\n\t\"mark\":\"None\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/mark",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/mark",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -242,12 +236,10 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/pause",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/pause",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -279,12 +271,10 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:8010/minesweeper/game/:gameId/resume",
-					"protocol": "http",
+					"raw": "{{minesweeperurl}}/minesweeper/game/:gameId/resume",
 					"host": [
-						"localhost"
+						"{{minesweeperurl}}"
 					],
-					"port": "8010",
 					"path": [
 						"minesweeper",
 						"game",
@@ -306,8 +296,11 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
-				"url": "http://localhost:8010/minesweeper/version"
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": "{{minesweeperurl}}/minesweeper/version"
 			},
 			"response": []
 		},
@@ -316,8 +309,11 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
-				"url": "http://localhost:8010/minesweeper/health_check"
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": "{{minesweeperurl}}/minesweeper/health_check"
 			},
 			"response": []
 		}

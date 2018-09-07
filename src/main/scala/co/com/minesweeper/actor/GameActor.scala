@@ -10,6 +10,13 @@ import co.com.minesweeper.model.error.GameOperationFailed
 import co.com.minesweeper.model.messages.{GameBasicOperation, GameHistory, GameState}
 import co.com.minesweeper.util.Timer
 
+/**  Representation of a game through an persistent actor
+  *
+  *  @author david93111
+  *
+  *  Implements basic persistenct actor with no tag behavior over messages for now
+  *
+  * */
 class GameActor(val id: String, currentGame: GameState) extends PersistentActor with BaseActor {
 
   context.setReceiveTimeout(AppConf.gameActorMaxIdleTime)
@@ -30,6 +37,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
   val validateCellOperation: (Int, Int) => Boolean = MinefieldService.cellInValidRange(state.minefield.columns, state.minefield.rows)
 
+  /** segment receive only focused on minefield operations: Revel and Mark */
   def minefieldOperationsReceive: Receive = {
     case reveal: RevealSpot=>
       val field: Field = state.minefield.board(reveal.row)(reveal.column)
@@ -58,11 +66,12 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       } else sender() ! GameOperationFailed.cellAlreadyRevealed(id)
   }
 
-  // Explicit set of recovery, but using default configuration as fit perfectly for the scenario
+  /** Explicit recovery strategy */
   override def recovery = Recovery(fromSnapshot = SnapshotSelectionCriteria.Latest)
 
-  // The GameManager already take care of found last journal and assuming the event as functional
-  // But this is needed in case that actor crashed caused by an exception
+  /** Persistence recovery, the GameManager should already take care of find the last journal
+    * and review if the event may be functional, but this is needed in case that actor crashed caused by an exception
+    **/
   override def receiveRecover: Receive = {
     case game: GameState =>
       logger.info(s"loading game state trough recover, adding to historic: state -> {}", game)
@@ -76,6 +85,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       }
   }
 
+  /** Required receive command por persistent actor, manage and validate minefield operations */
   override def receiveCommand: Receive = {
     case Snap =>
       snap()
@@ -112,6 +122,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       }
   }
 
+  /** centralized way of persist journal events and if success update state and take snapshot for easy recovery */
   def snap(): Unit = {
       persist(state) { result =>
         logger.info(s"Journal persist successful for game: ${state.gameId} was: $result")
@@ -120,6 +131,13 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       }
   }
 
+
+  /** Different possibilities of state change management
+    *
+    * As state of the game came change im multiple ways, only partial modification of state is needed
+    * and all this partial changes are managed on this section
+    *
+    * */
   private def autoPauseAndStopAfterIdle(action: String): Unit ={
     state = state.copy(timerInSeconds = timer.stop(), paused = true, lastAction = action)
     snap()
@@ -155,6 +173,7 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
 
 }
 
+/** Factory for GameActor Props, specify the available DSL with the actor  */
 object GameActor{
 
   case object GetGameState

@@ -5,6 +5,17 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Random
 
+/**  Service exposure for segregation of operations over a Mutable Minefield
+  *
+  *  @author david93111
+  *
+  *  Layer with utilities and methods properly belonging to the core of a Minefield represent as a two dimension
+  *  Array
+  *
+  *  Uses curried applied functions to deal with the particular internal dimension of each Minefield as
+  *  are randomized and sometimes unique based on possible preferences of the user
+  *
+  * */
 object MinefieldService {
 
   val log: Logger = LoggerFactory.getLogger(this.getClass)

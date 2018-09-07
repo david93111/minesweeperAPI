@@ -8,6 +8,7 @@ import co.com.minesweeper.api.codecs.exception.ExceptionCodecs
 import co.com.minesweeper.model.error.ServiceException
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
+/** Custom exception handler for unexpected exception between api and api services layer */
 class CustomExceptionHandler(log: LoggingAdapter) extends ExceptionCodecs{
 
   val handler: ExceptionHandler = ExceptionHandler {

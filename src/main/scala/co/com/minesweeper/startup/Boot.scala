@@ -10,6 +10,18 @@ import co.com.minesweeper.config.AppConf.{appHost, appPort}
 import scala.concurrent.ExecutionContextExecutor
 import scala.util.{Failure, Success}
 
+/**  App entry point.
+  *
+  *  @author david93111
+  *
+  *  Starts Akka-HTTP server and actor system and bind it to the configured port and host
+  *  Port and host can be changed on the application.conf at the http section or through JVM parameters
+  *  In Case of failure the actor system is terminated
+  *  On Success the register termination is setted up to stop server and actor system on shutdown hook
+  *
+  *  Creates a instance of the Api class that contains the akka route definition, codecs and handlers
+  *  @see [[co.com.minesweeper.api.Api]]
+  */
 object Boot extends App {
 
   implicit val actorSystem: ActorSystem = ActorSystem("minesweeper-system")

@@ -8,22 +8,33 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import akka.util.Timeout
 import co.com.minesweeper.actor.GameActor
 import co.com.minesweeper.actor.GameManagerActor._
 import co.com.minesweeper.api.codecs.Codecs
+import co.com.minesweeper.model.MinefieldConfig
 import co.com.minesweeper.model.error.{GameOperationFailed, ServiceException}
 import co.com.minesweeper.model.messages.{GameBasicOperation, GameHistory, GameResponseMessage, GameState}
 import co.com.minesweeper.model.request.NewGameRequest.GameSettings
 import co.com.minesweeper.model.request.{MarkRequest, RevealRequest}
-import co.com.minesweeper.model.MinefieldConfig
 import co.com.minesweeper.util.BaseTimeout
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 
 import scala.concurrent.Future
-import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Failure, Success}
 
+
+/**  Comunication Layer between HTTP api and Actors Layer for game operations
+  *
+  *  @author david93111
+  *
+  *  Definition of Game Manager router is provided by Api instance
+  *
+  *  Expose and resolve all requests received by the HTTP api through Future Directives to maximize paralelism
+  *  Resilient management on exception of future that are reported through ServiceException class  marshalling
+  *
+  *  Uses Akka Http Circe to encode all responses given by Actors or as a result of Technical or operation failure
+  *
+  * */
 trait ApiServices extends Codecs with BaseTimeout{
 
   val actorSystem: ActorSystem

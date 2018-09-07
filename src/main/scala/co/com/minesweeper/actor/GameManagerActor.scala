@@ -22,9 +22,8 @@ import scala.util.Try
 
 class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorMaterializer) extends BaseActor {
 
-
-  // JournalReader can fail if loaded on startup, due to plugin not fully loaded and connection with MongoDB
-  // May not be established correctly just after bootUp, load on first successful request is used instead
+  /* JournalReader can fail if loaded on startup, due to plugin not fully loaded and connection with MongoDB
+  // May not be established correctly just after bootUp, load on first successful request is used instead */
   var journal: Option[GameManagerReadJournal] = None
 
   override def receive: Receive = {
@@ -120,12 +119,15 @@ class GameManagerActor()(implicit val ex: ExecutionContext, materializer: ActorM
 
 }
 
+/** Factory of GameManager Router Props, contain possible DSL to interact with the GameManager actor */
 object GameManagerActor{
 
-  // Serves for testing purposes
+  /** custom abbreviated type for specify required journal  abstraction for execution or testing  */
   type GameManagerReadJournal = scaladsl.ReadJournal with CurrentEventsByPersistenceIdQuery with CurrentEventsByTagQuery
-  // Implemented using ConsistentHashtable, this is going to be useful to add sharding in near future changing
-  // this for shard region with extract entityId
+
+  /** messages implemented using ConsistentHashtable, this is going to be useful to add clustering with sharding
+    * in near future changing this for a shard region implementation with extract entityId
+    */
   case class CreateGame(gameId: String, minefieldConf: MinefieldConfig, username: String) extends ConsistentHashable{
     override def consistentHashKey: Any = gameId
   }

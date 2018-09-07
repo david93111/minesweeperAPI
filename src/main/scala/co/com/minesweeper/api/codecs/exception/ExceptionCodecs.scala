@@ -5,6 +5,13 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.generic.semiauto._
 
+/**  Mixin for Exception classes that need be marshaled
+  *
+  *  @author david93111
+  *
+  *  Designed to share encoders and decoders of custom exception classes used both on api or handlers
+  *
+  * */
 trait ExceptionCodecs {
 
   // Exception Response Encoder

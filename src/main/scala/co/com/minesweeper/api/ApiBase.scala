@@ -7,6 +7,17 @@ import akka.http.scaladsl.server.Directives._
 import co.com.minesweeper.api.handler.ApiBaseHandler
 import com.co.minesweeper.api.BuildInfo
 
+
+/**  Api technical services
+  *
+  *  @author david93111
+  *
+  *  includes handlers for Rejections and Exceptions, also management of Cross Site
+  *
+  *  Expose service of health check for deployment and balancing
+  *  Expose service of version to be able to see deployment version and verify if compatible with client library
+  *
+  * */
 trait ApiBase extends ApiBaseHandler{
 
   def healthCheck(): Route = {
