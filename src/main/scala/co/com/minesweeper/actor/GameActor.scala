@@ -16,6 +16,9 @@ import co.com.minesweeper.util.Timer
   *
   *  Implements basic persistenct actor with no tag behavior over messages for now
   *
+  *  As a benefit of persist game as actor state, event sourcing is used over the game operations and snapshot as
+  *  a complete history of events over the actor/game
+  *
   * */
 class GameActor(val id: String, currentGame: GameState) extends PersistentActor with BaseActor {
 
