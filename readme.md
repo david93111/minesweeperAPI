@@ -6,7 +6,14 @@ to represent and store games with event sourcing for game movements history, gam
 created with up to a 30 X 30 board with the desired quantity of mines distributed randomly across
 the board, time tracking, game pausing and resuming and also field marks features are present.
 
-a full list of features and how to use can be found below. So let's play !
+as actors a great way to represent changing state, fit great also for encapsulate time tracking and
+support high load with a top notch concurrent model avoiding all the dangers of paralellis cause actor is isolated
+and olny accesible through mailbox, so guarantee state preservation and correct transitions. 
+
+This benefits combined with event sourcing and a really fast and reliable NoSQL data source as Mongo, 
+the stack gain good performance with great guaranty of storing state, and also a way to failure recovery or 
+recover previous state and no only the last photo, which in a game comes great to see step by step
+whats was happening inside the mind of the player. 
 
 ### Client Library
 There is a client for the API build with JS using ES6 standard and Axios as HTTP Client 
