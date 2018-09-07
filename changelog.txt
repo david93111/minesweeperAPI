@@ -1,5 +1,18 @@
+- 1.0.0
+  + Updated readme for first public finale release
+  + All Code Documented
+  + Added license
+
 - 1.0.0Beta1
-  +
+  + Persistent actor using Reactive Mongo Plugin
+  + TimeTracker feature added
+  + Ability to Pause a game and resume a game
+  + Auto Pause a game if actor surpass configured maximum idle time
+  + Recovery of actor on shutdown or exception through snapshot or event sourcing
+  + Game State History including movements using event sourcing
+  + Journal and persistence testing using Akka Persistence InMemory Plugin
+  + Persistence Query Capabilities using JournalReader
+  + Added Procfiles por heroku deployment
 
 - 0.0.1
   + First stable release with basic features and only in memory persistence :

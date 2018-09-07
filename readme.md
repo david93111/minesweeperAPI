@@ -133,4 +133,5 @@ the report will be lost, so save it outside if you want to compare it later
 
 ### License 
 
-This project is licensed under the MIT License - see the [LICENSE]() file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/david93111/minesweeperAPI/blob/master/LICENSE) 
+file for details
