@@ -72,9 +72,9 @@ Now you can execute your own image
 docker run -rm --name some-minesweeper minesweeper-akka-api:latest
 ```
 
-#### Test locally 
+### Run and Test locally 
 
-##### Prerequisites to run on machine
+#### Prerequisites to run on machine
 
 For running the application you will need to have an scala full
 
@@ -87,7 +87,8 @@ For running the application you will need to have an scala full
 that supports only in memory persistence of actors, if you want to avoid the install of a MongoBD 
 you can try that version, since version 1.0.0+ Persistence Actor is supported, you can use a Docker
 version of Mongo to play with te latest version
-##### Running source code
+
+#### Running source code
 1. Clone the repository 
     ```bash
     git clone https://github.com/david93111/minesweeperAPI.git
@@ -106,7 +107,7 @@ version of Mongo to play with te latest version
          }
     ```
 
-##### Running distribution
+#### Running distribution
 
 To run a distribution you can generate it through the source code or download the 
 available distribution .zip at release v1.0.0
@@ -152,7 +153,7 @@ process using Akka Persistence in memory plugin, the test are complemented with 
 the coverage is expected to be always over 80%, there is an additional application.conf file inside the 
 test resources to override some configurations on the app for test execution.
 
-##### Testing the project
+#### Testing the project
 In order to execute the tests SBT is needed as well as Scala in the specified versions on the pre-requisites version.
 
 For launch the test process, execute the following command inside the root folder
@@ -164,7 +165,7 @@ This command will clean previous instrument data of coverage if the test where r
 the coverage for the following commands and the execute the unit tests, for now no IT tests are present as there is no
 CI or CD processes for this project for now
 
-##### Generate coverage report
+#### Generate coverage report
 once the test are finished successfully, if you want to verify the coverage based on the last test execution, use the
 following command:
 ````bash
