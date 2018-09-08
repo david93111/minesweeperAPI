@@ -8,20 +8,22 @@ the board, time tracking, game pausing and resuming and also field marks feature
 
 ### Why this stack ?
 
-Akka HTTP is not a framework, is a library that seeks on give the required and fundamentals tools to build
-an idiomatic API and low-level lightweight API not focused on interaction with the browser directly to render content,
-for this fit perfect to build Restful idiomatic APIs with a great concurrent system built on top of stream and with
-the combination of circe one of the best and more efficient json management library for scala is posible to write a
+Akka HTTP is a great library for building expressive REST APIs, due to is not a framework (not intend to by the creators), 
+is a library that seeks to give the required and fundamentals tools to build on top of the already implemented directives or two
+build own custom directives that accomplish the need behavior, also allow to build an idiomatic and low-level lightweight API 
+not focused on interaction with the browser directly to render content, for this reasons fit perfect to build RESTful simple and readable 
+APIs with a great concurrent system built on top of stream and with the combination of circe one of the best and more efficient json management library for scala is posible to write a
 totally type safe API with Entity fast coding and decoding 
  
-Actors a great way to represent changing state, fit great also for encapsulate time tracking and
-support high load with a top notch concurrent model avoiding all the dangers of paralellis cause actor is isolated
-and olny accesible through mailbox, so guarantee state preservation and correct transitions. 
+Actors a great way to represent state, fit great also for encapsulate the time tracking feature and
+support high load with a top notch concurrent model avoiding all the dangers of parallelism cause actor is isolated
+and only accessible through mailbox, so guarantee state preservation and correct transitions. 
 
-This benefits combined with event sourcing and a really fast and reliable NoSQL data source as Mongo, 
-the stack gain good performance with great guaranty of storing state, and also a way to failure recovery or 
-recover previous state and no only the last photo, which in a game comes great to see step by step
-whats was happening inside the mind of the player. 
+This benefits combined with event sourcing and a really fast and reliable NoSQL data source as Mongo and the reactive
+plugin for persistence that brings use of streams to write and read data with confidence over a the great back pressure implementation of
+akka streams, brings a stack that can gain a really good performance with great guaranties of storing state plus future extensibility, 
+and also a way to failure recovery or recover previous state and no only the last know photo, but full historic over an entity, 
+which in a game comes great to see step by step whats was happening inside the mind of the player or what could have been changed to win. 
 
 ### Client Library
 There is a client for the API build with JS using ES6 standard and Axios as HTTP Client 
@@ -38,9 +40,37 @@ of the application on the following URL
 ##### https://minesweeper-akka-api.herokuapp.com/minesweeper
 
 if you want to gave a look to how consume the API here is a postman documentation
-with the postman collection import option or curl prebuilt requests, only change the data
+with the postman collection import option or curl prebuilt requests and service explanations, only change the data
 as you want and your ready to go
 ##### https://documenter.getpostman.com/view/1567366/RWaGTUsv
+
+__*NOTE:*__ The first request can take longer due to the fact that the application is deployed on a heroku free dyno, 
+this means that the applications is on "Sleep Mode" (Lets call it that way) if no traffic is received.
+
+### Run with Docker
+There is a version of the MineSweeper API using Docker, does not include a MongoDB, so you will need to connect the 
+container with the MongoBD if is in your local either directly installed or using docker too.
+To run the image you can use the following commands:
+*Note that you need to set the MONGO_URL variable based on the location of you MONGODB and credentials 
+ ```bash
+ docker run --name some-minesweeper -e MONGO_URL=MyMongoHost david9311/minesweeper-akka-api
+ ```
+
+#### Build image
+To build the image from scratch with the current version of your source code you can use the following command inside
+the root folder of the project:
+```bash
+docker build -t minesweeper-akka-api:latest .
+```
+Take in mind that you must need to create a distribution first using the following command inside the root folder of the
+project also:
+```bash
+sbt dist
+```
+Now you can execute your own image
+```bash
+docker run -rm --name some-minesweeper minesweeper-akka-api:latest
+```
 
 #### Test locally 
 
@@ -100,9 +130,9 @@ inside the bin folder of the extracted zip
 ### How to use the API
 
 inside the project is the Postman collection file that has all the services available on 
-the API with an example on how must be consumed, also is documented on a public section in postman
-on this link, the services are self explained and also documented on the code 
-##### https://minesweeper-akka-api.herokuapp.com/minesweeper
+the API with an example on how must be consumed, the services are self explained and also documented on the code
+but also each service is documented on this public link with examples:
+##### https://documenter.getpostman.com/view/1567366/RWaGTUsv
 
 ### Built With
 
@@ -111,7 +141,7 @@ on this link, the services are self explained and also documented on the code
 * Akka Actors to manage state of game
 * Akka Persistence to persist state of game actors and game state history as event sourcing
 * Akka Kryo for serialization of messages to be persisted as java serializer is not a good option in many cases (Useful for clustering also)
-* Reactivemongo Persistence Plugin as a reliable connector to MongoDB for data storing
+* Reactivemongo Persistence Plugin as a reliable connector to MongoDB for data storing and stream persistence query
 * InMemory Persistence Plugin For testing purposes of persistence process
 * Scalatest + AkkaTestkit + RouteScalaTest for unit test
 * Sbt Coverage and Sbt Native Package Plugins for test coverage and packaging
@@ -128,14 +158,17 @@ In order to execute the tests SBT is needed as well as Scala in the specified ve
 For launch the test process, execute the following command inside the root folder
 ````bash
 sbt clean coverage test
+# or sbt test if coverage not needed later
 ```` 
 This command will clean previous instrument data of coverage if the test where ran previously, will set
-the coverage for the following commands and the execute the unit tests, for now no IT tests are builded as there is no
-CI CD processes for this project for now
+the coverage for the following commands and the execute the unit tests, for now no IT tests are present as there is no
+CI or CD processes for this project for now
 
-once the test are finished, if you want to verify the coverage based on the last test execution, use the
+##### Generate coverage report
+once the test are finished successfully, if you want to verify the coverage based on the last test execution, use the
 following command:
 ````bash
+# Note that launching test with coverage is needed to make a useful report
 sbt coverageReport
 ```` 
 this will generate an XML report inside target/scala-{scalaversion}/coverage-report folder and an 

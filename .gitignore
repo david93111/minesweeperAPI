@@ -1,4 +1,4 @@
-.idea/
-project/target/
-target/
-.class
+**.idea/
+**project/target/
+**target/
+*.class

@@ -1,3 +1,9 @@
+- 1.0.1
+  + Added Dockerfile for deploying on AWS ECS or any other docker registry based deployment platform
+  + Updated readme for docker information about run the container or build the image
+  + Minor fixes on Pause and Resume to avoid operations if game already finished
+  + Added tests for pause or resume on already finished games
+
 - 1.0.0
   + Updated readme for first public finale release
   + All Code Documented

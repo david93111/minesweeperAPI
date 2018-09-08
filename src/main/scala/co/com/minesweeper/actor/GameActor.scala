@@ -69,6 +69,20 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
       } else sender() ! GameOperationFailed.cellAlreadyRevealed(id)
   }
 
+  def timerOperationReceive: Receive ={
+    case PauseGame =>
+      if(!state.paused){
+        updateState(PauseGame.toString, timer.stop(), paused = true)
+      }
+      sender() ! state
+    case ResumeGame =>
+      if(state.paused){
+        timer.start()
+        updateState(ResumeGame.toString, timer.elapsed())
+      }
+      sender() ! state
+  }
+
   /** Explicit recovery strategy */
   override def recovery = Recovery(fromSnapshot = SnapshotSelectionCriteria.Latest)
 
@@ -103,17 +117,10 @@ class GameActor(val id: String, currentGame: GameState) extends PersistentActor 
         sender() ! GameOperationFailed.invalidCell(id)
       else
         minefieldOperationsReceive(e)
-    case PauseGame =>
-      if(!state.paused){
-        updateState(PauseGame.toString, timer.stop(), paused = true)
-      }
-      sender() ! state
-    case ResumeGame =>
-      if(state.paused){
-        timer.start()
-        updateState(ResumeGame.toString, timer.elapsed())
-      }
-      sender() ! state
+    case message: TimerOperation =>
+      if(state.gameStatus != GameStatus.Active)
+        sender() ! GameOperationFailed.GameFinished(id)
+      else timerOperationReceive(message)
     case GetHistory =>
       sender() ! gameHistory
     case ReceiveTimeout | AutoShutdown => // Stop the actor if idle (no messages received) time of actor surpass max idle time
@@ -184,8 +191,10 @@ object GameActor{
   case class RevealSpot(override val row: Int, override val column: Int) extends MinefieldOperation(row, column)
   case class MarkSpot(override val row: Int, override val column: Int, mark: MarkType) extends MinefieldOperation(row, column)
 
-  case object PauseGame extends GameBasicOperation
-  case object ResumeGame extends GameBasicOperation
+  trait TimerOperation extends GameBasicOperation
+
+  case object PauseGame extends TimerOperation
+  case object ResumeGame extends TimerOperation
   case object GetHistory extends GameBasicOperation
 
   // Class to avoid use of poson pill

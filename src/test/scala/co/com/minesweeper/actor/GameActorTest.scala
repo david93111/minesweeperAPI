@@ -137,6 +137,28 @@ class GameActorTest extends TestKit(ActorSystem("gameActor-system-test")) with I
       })
     }
 
+    "Fail after send message to actor to pause a finished game" in {
+      gameActor ! PauseGame
+      expectMsgPF()({
+        case error: GameOperationFailed =>
+          error.statusCode shouldEqual 409
+          error.message should startWith("Operation not allowed")
+        case e =>
+          fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a GameOperationFailed")
+      })
+    }
+
+    "Fail after send message to actor to resume a finished game" in {
+      gameActor ! ResumeGame
+      expectMsgPF()({
+        case error: GameOperationFailed =>
+          error.statusCode shouldEqual 409
+          error.message should startWith("Operation not allowed")
+        case e =>
+          fail(s"Message type of type ${e.getClass.getSimpleName} expected to be a GameOperationFailed")
+      })
+    }
+
     "Create new game and reveal a mine, game must pass to Lose state" in {
       val config = MinefieldConfig(2, 2, 4)
       val game2 = GameState("game2", GameStatus.Active, "user2", MinefieldService.createMinefield(config.columns, config.rows, config.mines))
