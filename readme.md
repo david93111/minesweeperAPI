@@ -4,30 +4,32 @@ Classic Minesweeper game designed as a microservice using Akka HTTP with Circe f
 on conjunction with Akka Actors and Akka Persistence over MongoDB as Journal and Snapshot store 
 to represent and store games with event sourcing for game movements history, games can be 
 created with up to a 30 X 30 board with the desired quantity of mines distributed randomly across
-the board, time tracking, game pausing and resuming and also field marks features are present.
+the board. also there is time tracking, game pausing and resuming features present you can marj field of
+the minefield too.
 
 ### Why this stack ?
 
 Akka HTTP is a great library for building expressive REST APIs, due to is not a framework (not intend to by the creators), 
-is a library that seeks to give the required and fundamentals tools to build on top of the already implemented directives or two
+is a library that seeks to give the required and fundamentals tools to build on top of the already implemented directives or to
 build own custom directives that accomplish the need behavior, also allow to build an idiomatic and low-level lightweight API 
 not focused on interaction with the browser directly to render content, for this reasons fit perfect to build RESTful simple and readable 
 APIs with a great concurrent system built on top of stream and with the combination of circe one of the best and more efficient json management library for scala is posible to write a
 totally type safe API with Entity fast coding and decoding 
  
 Actors a great way to represent state, fit great also for encapsulate the time tracking feature and
-support high load with a top notch concurrent model avoiding all the dangers of parallelism cause actor is isolated
-and only accessible through mailbox, so guarantee state preservation and correct transitions. 
+support high load with a top notch concurrent model avoiding all the dangers of parallelism, due to the fact that actors
+are isolated and only accessible through mailbox, so guarantee state preservation and correct transitions.
 
-This benefits combined with event sourcing and a really fast and reliable NoSQL data source as Mongo and the reactive
-plugin for persistence that brings use of streams to write and read data with confidence over a the great back pressure implementation of
-akka streams, brings a stack that can gain a really good performance with great guaranties of storing state plus future extensibility, 
-and also a way to failure recovery or recover previous state and no only the last know photo, but full historic over an entity, 
-which in a game comes great to see step by step whats was happening inside the mind of the player or what could have been changed to win. 
+This benefits combined with event sourcing and a really fast and reliable NoSQL data store as Mongo and the reactive
+plugin for persistence that brings the use of streams to write and read data with confidence over the great back pressure implementation of
+akka streams, brings a stack that can gain a really good performance with great guaranties of delivery plus future extensibility,
+and more important Akka Persistence brings built in management to failure recovery and recover previous state and no only the last know photo,
+but full historic over an entity, which in a game comes great to see step by step whats was happening inside the mind of the player
+or what could have been changed to win.
 
 ### Client Library
-There is a client for the API build with JS using ES6 standard and Axios as HTTP Client 
-is designed to run as an NPM module or in the browser, can be found on the following link
+There is a Client Library for the API build with JS using ES6 standard and Axios as HTTP Client 
+is designed to run as an NPM module (for node or NPM based projects) or in the browser, can be found on the following link
 
 ##### https://github.com/david93111/minesweeper-client 
 
@@ -36,37 +38,41 @@ is designed to run as an NPM module or in the browser, can be found on the follo
 #### Try the web API right away
 
 To try the API or play right away there is a version already deployed on heroku 
-of the application on the following URL
+of the application on the following URL:
 ##### https://minesweeper-akka-api.herokuapp.com/minesweeper
 
-if you want to gave a look to how consume the API here is a postman documentation
-with the postman collection import option or curl prebuilt requests and service explanations, only change the data
+if you want to gave a quick look to how to use the API here is the full postman documentation
+with the option to import the postman collection or use prebuilt curl requests and service explanations, only change the data
 as you want and your ready to go
 ##### https://documenter.getpostman.com/view/1567366/RWaGTUsv
 
-__*NOTE:*__ The first request can take longer due to the fact that the application is deployed on a heroku free dyno, 
-this means that the applications is on "Sleep Mode" (Lets call it that way) if no traffic is received.
+__*NOTE:*__ The first request can take longer because the application is deployed on a heroku free dyno,
+this means that the applications is on "Sleep Mode" (Lets call it that way) if no traffic is received in longer periods of time.
 
 ### Run with Docker
 There is a version of the MineSweeper API using Docker, does not include a MongoDB, so you will need to connect the 
 container with the MongoBD if is in your local either directly installed or using docker too.
-To run the image you can use the following commands:
+To run the image you can use the following command:
+
 *Note that you need to set the MONGO_URL variable based on the location of you MONGODB and credentials 
  ```bash
  docker run --name some-minesweeper -e MONGO_URL=MyMongoHost david9311/minesweeper-akka-api
  ```
 
-#### Build image
-To build the image from scratch with the current version of your source code you can use the following command inside
+#### Build Docker image
+
+Take in mind that you first need to have a distribution file on target/universal of the project folder,  
+use the following command inside the root folder of the if you need to create it:
+```bash
+sbt dist
+```
+
+To build the Docker image from scratch with the current version of your source code you can use the following command inside
 the root folder of the project:
 ```bash
 docker build -t minesweeper-akka-api:latest .
 ```
-Take in mind that you must need to create a distribution first using the following command inside the root folder of the
-project also:
-```bash
-sbt dist
-```
+
 Now you can execute your own image
 ```bash
 docker run -rm --name some-minesweeper minesweeper-akka-api:latest
@@ -76,7 +82,7 @@ docker run -rm --name some-minesweeper minesweeper-akka-api:latest
 
 #### Prerequisites to run on machine
 
-For running the application you will need to have an scala full
+For running the application in your local machine you will need to have the following requirements installed
 
 * JDK 1.8+ installed
 * SBT for compile, test, coverage and building
@@ -169,7 +175,7 @@ CI or CD processes for this project for now
 once the test are finished successfully, if you want to verify the coverage based on the last test execution, use the
 following command:
 ````bash
-# Note that launching test with coverage is needed to make a useful report
+# Note that launching test with coverage is needed to make an useful report
 sbt coverageReport
 ```` 
 this will generate an XML report inside target/scala-{scalaversion}/coverage-report folder and an 
